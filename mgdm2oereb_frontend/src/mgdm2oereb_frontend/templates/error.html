@@ -1,0 +1,20 @@
+<%inherit file="wrapper.html" />
+
+<h5 class="px-2 py-1 bg-secondary text-white">Fehler</h5>
+
+<p class="mx-2">
+    Bei Ihrer Anfrage ist leider ein Fehler aufgetreten. Bitte versuchen Sie es zu einem späteren Zeitpunkt
+    noch einmal. Sollte der Fehler wiederholt auftreten, wenden Sie sich bitte an den technischen Support.
+    Besten Dank für Ihr Verständnis!
+
+    <address class="col">
+        <b>OPENGIS.ch</b><br>
+        Via Geinas 2<br>
+        7031 Laax<br>
+        <a href="mailto:info@opengis.ch">info@opengis.ch</a>
+    </address>
+
+    % if debug:
+    <!-- ${error} -->
+    % endif
+</p>

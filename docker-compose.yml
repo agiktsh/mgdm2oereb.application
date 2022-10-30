@@ -1,0 +1,46 @@
+services:
+
+  # The service interface which offers transformation entry points based on pygeopi processing standards
+  mgdm2oereb-service:
+    user: ${CURRENT_UID}:${CURRENT_GID}
+    build: 
+      context: ./mgdm2oereb_service
+      target: dev
+      args:
+        MGDM2OEREB_VERSION: a28aefbae33b9241ad2ecf175c710146d202cd33
+    restart: unless-stopped
+    environment:
+      - PYGEOAPI_CONFIG
+      - PYGEOAPI_OPENAPI 
+      - GUNICORN_CONFIG
+      - ILIVALIDATOR_SERVICE=http://ilivalidator-service:7000/rest/jobs
+    volumes:
+      # demo data
+      - ./mgdm2oereb_service:/app
+    ports:
+      - "5000:5000"
+  # The service interface which offers transformation entry points based on pygeopi processing standards
+  mgdm2oereb-gui:
+    user: ${CURRENT_UID}:${CURRENT_GID}
+    build:
+      context: ./mgdm2oereb_frontend
+      target: dev
+    restart: unless-stopped
+    environment:
+      REDIS_HOST: "redis"
+      URL_SCHEME: "http"
+      LOG_LEVEL: "DEBUG"
+    volumes:
+      # demo data
+      - ./mgdm2oereb_frontend:/app
+    ports:
+      - "8080:8080"
+  ilivalidator-service:
+    image: sogis/ilivalidator-web-service:2
+    environment:
+      TZ: Europe/Zurich
+    ports:
+      - 7000:8080
+      - 7001:8000
+  redis:
+    image: centos/redis-5-centos7

@@ -1,0 +1,63 @@
+{
+  "apps": {
+    "http": {
+      "servers": {
+        "localhost": {
+          "basicauth": {
+            "sh": "JDJhJDE0JEl3WVZjTXc4aDZEY3ZBTGR5STJ5TWV6U2UuMVJnREwzNXY5WmcwYjNZeklvbElWLmprTkNH"
+          },
+          "automatic_https": {
+            "disable_redirects": true
+          },
+          "listen": [
+            ":80",
+            ":443"
+          ],
+          "routes": [
+            {
+              "match": [
+                {
+                  "host": [
+                    "*"
+                  ]
+                }
+              ],
+              "handle": [
+                {
+                  "handler": "subroute",
+                  "routes": [
+                    {
+                      "handle": [
+                        {
+                          "handler": "reverse_proxy",
+                          "upstreams": [
+                            {
+                              "dial": "web:5000"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "terminal": true
+            }
+          ]
+        }
+      }
+    },
+    "tls": {
+      "automation": {
+        "policies": [
+          {
+            "issuer": {
+              "email": "clemens@opengis.ch",
+              "module": "acme"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

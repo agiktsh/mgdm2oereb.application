@@ -1,0 +1,20 @@
+@import "variables";
+@import "/external_libs/bootstrap/scss/bootstrap";
+@import "/external_libs/font-awesome/scss/font-awesome";
+
+ul {
+  list-style: none;
+  padding-inline-start: 0.5rem;
+}
+
+ul.root {
+  padding-inline-start: 0;
+}
+
+ul li li {
+  padding-inline-start: 1rem;
+}
+
+.bl-input {
+  flex: 0 1 160px !important;
+}
