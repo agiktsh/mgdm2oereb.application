@@ -44,5 +44,5 @@ jobs:
         with:
           context: ./mgdm2oereb_frontend
           push: true
-          tags: ghcr.io/${{ github.repository }}-mgdm2oereb-gui:${{ GITHUB_SHA }}
+          tags: ghcr.io/${{ github.repository }}-mgdm2oereb-gui:${{ github.head_ref }}-${{ github.sha }}
           target: dev
