@@ -1,0 +1,50 @@
+name: Build and push nightly
+
+on:
+  pull_request:
+    branches: [ "master" ]
+
+
+jobs:
+
+  build-and-push-mgdm2oereb-service:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and push mgdm2oereb-service
+      uses: docker/build-push-action@v3
+      with:
+        context: ./mgdm2oereb_service
+        # do not push for the moment, to avoid load
+        # push: true
+        tags: ghcr.io/${{ github.repository }}-mgdm2oereb-service:${{ github.head_ref }}-${{ github.sha }}
+        target: dev
+
+  build-and-push-mgdm2oereb-gui:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push mgdm2oereb-service
+        uses: docker/build-push-action@v3
+        with:
+          context: ./mgdm2oereb_frontend
+          # do not push for the moment, to avoid load
+          # push: true
+          tags: ghcr.io/${{ github.repository }}-mgdm2oereb-gui:${{ github.head_ref }}-${{ github.sha }}
+          target: dev

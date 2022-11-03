@@ -1,6 +1,6 @@
 FROM python:3.8-alpine3.16 as dev
 
-RUN apk add \
+RUN apk update && apk add \
         build-base \
         unzip \
         git \
