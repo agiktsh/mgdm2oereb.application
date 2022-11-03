@@ -3,7 +3,6 @@
 from mgdm2oereb_frontend.views.form import Form
 from mgdm2oereb_frontend.views.index import Index
 from mgdm2oereb_frontend.views.delivery import Delivery
-from mgdm2oereb_frontend.views.proxy import Print
 from mgdm2oereb_frontend.views.status import Status
 from mgdm2oereb_frontend.views.error import Error
 
@@ -50,12 +49,6 @@ def includeme(config):
     config.add_view(Form,
                     attr='upload',
                     route_name='form',
-                    request_method='POST')
-
-    config.add_route('print', '/get/pdf')
-    config.add_view(Print,
-                    attr='build_report',
-                    route_name='print',
                     request_method='POST')
 
     config.commit()
