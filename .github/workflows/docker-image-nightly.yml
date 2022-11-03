@@ -23,7 +23,8 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: ./mgdm2oereb_service
-        push: true
+        # do not push for the moment, to avoid load
+        # push: true
         tags: ghcr.io/${{ github.repository }}-mgdm2oereb-service:${{ github.head_ref }}-${{ github.sha }}
         target: dev
 
@@ -43,6 +44,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./mgdm2oereb_frontend
-          push: true
+          # do not push for the moment, to avoid load
+          # push: true
           tags: ghcr.io/${{ github.repository }}-mgdm2oereb-gui:${{ github.head_ref }}-${{ github.sha }}
           target: dev
