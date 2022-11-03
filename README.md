@@ -9,9 +9,9 @@ For more details about the components look into the readmes inside the correspon
 
 ```mermaid
 graph TD;
-    service[OpenAPI Job Interface]
-    gui[WebGUI]
-    validator[ilivalidator-web-service]
+    service["OpenAPI Job Interface => '/oapi'"]
+    gui["WebGUI => '/'"]
+    validator["ilivalidator-web-service"]
     gateway("API Gateway 🔒")
     
     gateway---service
