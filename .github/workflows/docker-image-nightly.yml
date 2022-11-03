@@ -24,7 +24,7 @@ jobs:
       with:
         context: ./mgdm2oereb_service
         push: true
-        tags: ghcr.io/${{ github.repository }}-mgdm2oereb-service:${{ github.ref }}
+        tags: ghcr.io/${{ github.repository }}-mgdm2oereb-service:${{ GITHUB_SHA }}
         target: dev
 
   build-and-push-mgdm2oereb-gui:
@@ -44,5 +44,5 @@ jobs:
         with:
           context: ./mgdm2oereb_frontend
           push: true
-          tags: ghcr.io/${{ github.repository }}-mgdm2oereb-gui:${{ github.ref }}
+          tags: ghcr.io/${{ github.repository }}-mgdm2oereb-gui:${{ GITHUB_SHA }}
           target: dev
