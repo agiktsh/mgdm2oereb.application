@@ -13,6 +13,7 @@ services:
       - PYGEOAPI_CONFIG
       - PYGEOAPI_OPENAPI 
       - GUNICORN_CONFIG
+      - MGDM2OEREB_TRAFO_CONFIG
       - ILIVALIDATOR_SERVICE=http://ilivalidator-service:8080/rest/jobs
     volumes:
       # demo data
