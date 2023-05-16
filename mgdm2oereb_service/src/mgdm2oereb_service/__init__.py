@@ -5,7 +5,8 @@ pygeoapi.plugin.PLUGINS['process_manager']['CustomTinyDB'] = 'mgdm2oereb_service
 pygeoapi.plugin.PLUGINS['process']['Mgdm2Oereb'] = 'mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb.processors.Mgdm2OerebTransformator'
 pygeoapi.plugin.PLUGINS['process']['Mgdm2OerebOereblex'] = 'mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb.processors.Mgdm2OerebTransformatorOereblex'
 from markupsafe import escape
-from flask import Flask, send_file, render_template
+from lxml import etree
+from flask import Flask, send_file, render_template, request
 from pygeoapi.flask_app import BLUEPRINT
 from pygeoapi.flask_app import STATIC_FOLDER
 
@@ -48,5 +49,10 @@ def pubished_feed():
     file_paths.sort()
     for file_path in file_paths:
         with open(file_path, mode="r") as file_handler:
-            content.append(file_handler.read())
-    return render_template("feed.xml", content=content, content_type='application/xml')
+            root = etree.fromstring(file_handler.read())
+            for link in root.xpath('//link'):
+                link.text = f'{request.host_url}{link.text}'
+            for guid in root.xpath('//guid'):
+                guid.text = f'{request.host_url}{guid.text}'
+            content.append(etree.tostring(root, pretty_print=True))
+    return render_template("feed.xml", content=content, content_type='application/rss+xml'
