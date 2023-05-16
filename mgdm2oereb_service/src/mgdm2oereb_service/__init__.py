@@ -6,7 +6,7 @@ pygeoapi.plugin.PLUGINS['process']['Mgdm2Oereb'] = 'mgdm2oereb_service.pygeoapi_
 pygeoapi.plugin.PLUGINS['process']['Mgdm2OerebOereblex'] = 'mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb.processors.Mgdm2OerebTransformatorOereblex'
 from markupsafe import escape
 from lxml import etree
-from flask import Flask, send_file, render_template, request
+from flask import Flask, send_file, render_template, request, make_response
 from pygeoapi.flask_app import BLUEPRINT
 from pygeoapi.flask_app import STATIC_FOLDER
 from urllib.parse import urlparse
@@ -71,9 +71,12 @@ def pubished_feed():
             for guid in root.xpath('//guid'):
                 guid.text = f'{url}{guid.text}'
             content.append(etree.tostring(root, pretty_print=True).decode())
-    return render_template(
-        "feed.xml",
-        content=content,
-        content_type='application/rss+xml',
-        url=base_url
+    response = make_response(
+        render_template(
+            "feed.xml",
+            content=content,
+            url=base_url
+        )
     )
+    response.content_type = 'application/rss+xml'
+    return response
