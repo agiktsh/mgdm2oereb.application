@@ -9,6 +9,7 @@ import requests
 import time
 import datetime
 from lxml import etree as ET
+from email import utils
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
 
@@ -264,7 +265,7 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
                 log_content = response.text
                 encoding = requests.utils.get_encoding_from_headers(response.headers)
                 logging.info(log_content)
-                logging.error(encoding)
+                logging.info(encoding)
                 return log_content.encode(encoding=encoding)
             elif body["status"] == "PROCESSING":
                 time.sleep(float(status_response.headers["Retry-After"])/1000)
@@ -318,10 +319,10 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
         id_bfs_string = "" if not id_bfs else f"({id_bfs})"
         return f"""
         <item>
-          <guid isPermaLink="true">{self.job_id}</guid>
+          <guid isPermaLink="true">mgdm2oereb_results/{self.job_id}/index.html</guid>
           <title>Transformation succeeded (theme: {theme_code}, model: {model})</title>
           <description>The MGDM2OERB Trafo from MGDM {model} to OeREBKRM_V2_0 for {theme_code}{id_bfs_string} was successful and is published now.</description>
           <link>mgdm2oereb_results/{self.job_id}/index.html</link>
-          <pubDate>{self.timestamp}</pubDate>
+          <pubDate>{utils.format_datetime(self.timestamp)}</pubDate>
         </item>
         """.encode(encoding="utf-8")

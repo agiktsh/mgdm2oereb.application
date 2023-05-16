@@ -9,8 +9,8 @@
         <lastBuildDate>Tue, 10 Jun 2003 09:41:01 GMT</lastBuildDate>
         <docs>http://blogs.law.harvard.edu/tech/rss</docs>
         <generator>mgdm2oereb.application</generator>
-        <managingEditor>clemens@opengis.ch</managingEditor>
-        <webMaster>clemens@opengis.ch</webMaster>
+        <managingEditor>clemens@opengis.ch (Clemens Rudert)</managingEditor>
+        <webMaster>clemens@opengis.ch (Clemens Rudert)</webMaster>
         {% for item in content %}
             {{item|safe}}
         {% endfor %}
