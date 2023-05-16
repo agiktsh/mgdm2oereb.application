@@ -55,4 +55,4 @@ def pubished_feed():
             for guid in root.xpath('//guid'):
                 guid.text = f'{request.host_url}{guid.text}'
             content.append(etree.tostring(root, pretty_print=True))
-    return render_template("feed.xml", content=content, content_type='application/rss+xml')
+    return render_template("feed.xml", content=content, content_type='application/rss+xml'
