@@ -9,6 +9,7 @@ from lxml import etree
 from flask import Flask, send_file, render_template, request
 from pygeoapi.flask_app import BLUEPRINT
 from pygeoapi.flask_app import STATIC_FOLDER
+from urllib.parse import urlparse
 
 parser = etree.XMLParser(remove_blank_text=True)
 
@@ -17,6 +18,12 @@ RESULTS_PATH = "mgdm2oereb_results"
 app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='/static')
 
 app.register_blueprint(BLUEPRINT, url_prefix='/oapi')
+
+
+def upgrade_url_to_https(url):
+    o = urlparse(url)
+    o.scheme = 'https'
+    return o.geturl()
 
 @app.route(f'/{RESULTS_PATH}/<path:file_name>')
 def mgdm2oereb_results_xtf(file_name):
@@ -49,17 +56,24 @@ def pubished_feed():
     content = []
     file_paths = glob.glob("/data/*.rss.xml")
     file_paths.sort()
+    if request.headers.get('X-Forwarded-Proto') == 'https':
+        url = upgrade_url_to_https(request.host_url)
+        base_url = upgrade_url_to_https(request.base_url)
+    else:
+        url = request.host_url
+        base_url = request.base_url
+
     for file_path in file_paths:
         with open(file_path, mode="r") as file_handler:
             root = etree.fromstring(file_handler.read())
             for link in root.xpath('//link'):
-                link.text = f'{request.host_url}{link.text}'
+                link.text = f'{url}{link.text}'
             for guid in root.xpath('//guid'):
-                guid.text = f'{request.host_url}{guid.text}'
+                guid.text = f'{url}{guid.text}'
             content.append(etree.tostring(root, pretty_print=True).decode())
     return render_template(
         "feed.xml",
         content=content,
         content_type='application/rss+xml',
-        url=request.base_url
+        url=base_url
     )
