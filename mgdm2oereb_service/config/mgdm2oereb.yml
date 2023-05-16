@@ -35,6 +35,14 @@ Mgdm2OerebTransformatorOereblex:
       metadata: None
       keywords:
         - input
+    municipality_id:
+      title: Gemeinde ID BFS
+      description: The ID BFS of the municipality. If existing the data will be handled as a split dataset.
+      schema:
+        type: number
+      minOccurs: 0
+      maxOccurs: 1
+      metadata: None
     theme_code:
       title: Theme Code
       description: The theme code regarding to https://models.geo.admin.ch/V_D/OeREB/OeREBKRM_V2_0_Themen.xml (e.g. ch.Planungszonen)
@@ -159,6 +167,14 @@ Mgdm2OerebTransformator:
       metadata: None
       keywords:
         - input
+    municipality_id:
+      title: Gemeinde ID BFS
+      description: The ID BFS of the municipality. If existing the data will be handled as a split dataset.
+      schema:
+        type: number
+      minOccurs: 0
+      maxOccurs: 1
+      metadata: None
     theme_code:
       title: Theme Code
       description: The theme code regarding to https://models.geo.admin.ch/V_D/OeREB/OeREBKRM_V2_0_Themen.xml (e.g. ch.Planungszonen)

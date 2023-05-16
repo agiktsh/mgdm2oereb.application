@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+        <title>Published Transformations</title>
+        <link>https://mgdm2oereb.opengis.ch/</link>
+        <description>The transformation service</description>
+        <language>de-ch</language>
+        <pubDate>Tue, 10 Jun 2003 04:00:00 GMT</pubDate>
+        <lastBuildDate>Tue, 10 Jun 2003 09:41:01 GMT</lastBuildDate>
+        <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+        <generator>mgdm2oereb.application</generator>
+        <managingEditor>clemens@opengis.ch</managingEditor>
+        <webMaster>clemens@opengis.ch</webMaster>
+        {% for item in content %}
+            {{item|safe}}
+        {% endfor %}
+    </channel>
+</rss>
