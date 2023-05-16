@@ -22,8 +22,8 @@ app.register_blueprint(BLUEPRINT, url_prefix='/oapi')
 
 def upgrade_url_to_https(url):
     o = urlparse(url)
-    o._replace(scheme='https')
-    return o.geturl()
+    no = o._replace(scheme='https')
+    return no.geturl()
 
 @app.route(f'/{RESULTS_PATH}/<path:file_name>')
 def mgdm2oereb_results_xtf(file_name):
