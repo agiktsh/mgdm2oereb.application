@@ -22,7 +22,7 @@ app.register_blueprint(BLUEPRINT, url_prefix='/oapi')
 
 def upgrade_url_to_https(url):
     o = urlparse(url)
-    o.scheme = 'https'
+    o._replace(scheme='https')
     return o.geturl()
 
 @app.route(f'/{RESULTS_PATH}/<path:file_name>')
