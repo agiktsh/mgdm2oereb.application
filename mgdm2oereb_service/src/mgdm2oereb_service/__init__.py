@@ -10,6 +10,8 @@ from flask import Flask, send_file, render_template, request
 from pygeoapi.flask_app import BLUEPRINT
 from pygeoapi.flask_app import STATIC_FOLDER
 
+parser = etree.XMLParser(remove_blank_text=True)
+
 RESULTS_PATH = "mgdm2oereb_results"
 
 app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='/static')
@@ -54,5 +56,10 @@ def pubished_feed():
                 link.text = f'{request.host_url}{link.text}'
             for guid in root.xpath('//guid'):
                 guid.text = f'{request.host_url}{guid.text}'
-            content.append(etree.tostring(root, pretty_print=True))
-    return render_template("feed.xml", content=content, content_type='application/rss+xml')
+            content.append(etree.tostring(root, pretty_print=True).decode())
+    return render_template(
+        "feed.xml",
+        content=content,
+        content_type='application/rss+xml',
+        url=request.base_url
+    )
