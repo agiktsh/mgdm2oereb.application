@@ -1,3 +1,5 @@
+import json
+
 import pygeoapi
 import os
 import glob
@@ -55,6 +57,22 @@ def mgdm2oereb_results_index(uid):
     for file_path in file_paths:
         content.append(f"{url}{RESULTS_PATH}/{os.path.basename(file_path)}")
     return render_template("index.html", content=content)
+
+
+@app.route(f'/{RESULTS_PATH}/<path:uid>/index.json')
+def mgdm2oereb_results_index_json(uid):
+    file_paths = glob.glob(f"/data/*{uid}*")
+    file_paths.sort()
+    if request.headers.get('X-Forwarded-Proto') == 'https':
+        url = upgrade_url_to_https(request.host_url)
+        base_url = upgrade_url_to_https(request.base_url)
+    else:
+        url = request.host_url
+        base_url = request.base_url
+    content = []
+    for file_path in file_paths:
+        content.append(f"{url}{RESULTS_PATH}/{os.path.basename(file_path)}")
+    return Response(response=json.dumps(content, indent=4), content_type='application/json')
 
 
 @app.route(f'/{RESULTS_PATH}/<path:uid>/job.json')
