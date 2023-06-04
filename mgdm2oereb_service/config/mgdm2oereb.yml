@@ -39,7 +39,7 @@ Mgdm2OerebTransformatorOereblex:
       title: Basket ID
       description: The Basket ID which is applied to the transformed dataset.
       schema:
-        type: number
+        type: string
       minOccurs: 1
       maxOccurs: 1
       metadata: None
