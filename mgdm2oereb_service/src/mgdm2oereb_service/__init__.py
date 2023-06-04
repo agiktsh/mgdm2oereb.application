@@ -53,7 +53,7 @@ def mgdm2oereb_results_index(uid):
         base_url = request.base_url
     content = []
     for file_path in file_paths:
-        content.append(f"{url}/{RESULTS_PATH}/{os.path.basename(file_path)}")
+        content.append(f"{url}{RESULTS_PATH}/{os.path.basename(file_path)}")
     return render_template("index.html", content=content)
 
 
