@@ -45,9 +45,15 @@ def mgdm2oereb_results_xtf(file_name):
 def mgdm2oereb_results_index(uid):
     file_paths = glob.glob(f"/data/*{uid}*")
     file_paths.sort()
+    if request.headers.get('X-Forwarded-Proto') == 'https':
+        url = upgrade_url_to_https(request.host_url)
+        base_url = upgrade_url_to_https(request.base_url)
+    else:
+        url = request.host_url
+        base_url = request.base_url
     content = []
     for file_path in file_paths:
-        content.append(f"/{RESULTS_PATH}/{os.path.basename(file_path)}")
+        content.append(f"{url}/{RESULTS_PATH}/{os.path.basename(file_path)}")
     return render_template("index.html", content=content)
 
 
