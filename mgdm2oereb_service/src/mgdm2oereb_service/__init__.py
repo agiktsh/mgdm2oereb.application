@@ -6,7 +6,7 @@ pygeoapi.plugin.PLUGINS['process']['Mgdm2Oereb'] = 'mgdm2oereb_service.pygeoapi_
 pygeoapi.plugin.PLUGINS['process']['Mgdm2OerebOereblex'] = 'mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb.processors.Mgdm2OerebTransformatorOereblex'
 from markupsafe import escape
 from lxml import etree
-from flask import Flask, send_file, render_template, request, make_response
+from flask import Flask, send_file, render_template, request, make_response, Response
 from pygeoapi.flask_app import BLUEPRINT
 from pygeoapi.flask_app import STATIC_FOLDER
 from urllib.parse import urlparse
@@ -49,6 +49,14 @@ def mgdm2oereb_results_index(uid):
     for file_path in file_paths:
         content.append(f"/{RESULTS_PATH}/{os.path.basename(file_path)}")
     return render_template("index.html", content=content)
+
+
+@app.route(f'/{RESULTS_PATH}/<path:uid>/job.json')
+def mgdm2oereb_job_json(uid):
+    file_paths = glob.glob(f"/data/*{uid}*.json")
+    file_paths.sort()
+    with open(file_paths[0]) as fh:
+        return Response(response=fh.read(), content_type='application/json')
 
 
 @app.route("/published_feed")

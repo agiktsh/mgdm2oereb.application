@@ -15,7 +15,7 @@ from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
 class JobFile(object):
 
-    def __init__(self, name, job_id, job_folder, web_folder, theme_code, timestamp, id_bfs=None):
+    def __init__(self, name, job_id, job_folder, web_folder, theme_code, timestamp, target_basket_id):
         """
 
         Args:
@@ -27,7 +27,7 @@ class JobFile(object):
                 (folder must exist).
             theme_code (str): The theme code which is used as a part of the name.
             timestamp (datetime.datetime): The timestamp when this job was created.
-            id_bfs (str or None): The id bfs of a municipality which might be used as part of the name
+            target_basket_id (str): The id bfs of a municipality which might be used as part of the name
                 (default: None).
         """
         self.name = name
@@ -35,7 +35,7 @@ class JobFile(object):
         self.job_folder = job_folder
         self.web_folder = web_folder
         self.theme_code = theme_code
-        self.id_bfs = id_bfs
+        self.target_basket_id = target_basket_id
         self.time_string = timestamp.strftime('%Y-%m-%d_%H%M%S%s')
 
     def write_file(self, path, content):
@@ -43,11 +43,11 @@ class JobFile(object):
             file_handler.write(content)
 
     def file_name(self):
-        if self.id_bfs:
+        if self.target_basket_id:
             return ".".join([
                 self.time_string,
                 self.theme_code,
-                self.id_bfs,
+                self.target_basket_id,
                 self.job_id,
                 self.name
             ])
@@ -127,11 +127,12 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
         self.output_log_file_name = 'output.ili.log'
         self.input_log_file_name = 'input.ili.log'
         self.rss_snippet_file_name = "rss.xml"
+        self.json_snippet_file_name = "job.json"
         self.catalog_file_name = "supplement_catalog.xtf"
         self.municipality_id = None
         self.timestamp = datetime.datetime.now()
 
-    def create_job_file(self, name, theme_code, id_bfs=None):
+    def create_job_file(self, name, theme_code, target_basket_id):
         return JobFile(
             name,
             self.job_id,
@@ -139,7 +140,7 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
             self.data_path,
             theme_code,
             self.timestamp,
-            id_bfs
+            target_basket_id
         )
 
     def execute(self, data):
@@ -263,10 +264,10 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
                 logging.info(ili_log_path)
                 response = requests.get(ili_log_path)
                 log_content = response.text
-                encoding = requests.utils.get_encoding_from_headers(response.headers)
+                # encoding = requests.utils.get_encoding_from_headers(response.headers)
                 logging.info(log_content)
-                logging.info(encoding)
-                return log_content.encode(encoding=encoding)
+                # logging.info(encoding)
+                return bytes(log_content, 'utf-8')
             elif body["status"] == "PROCESSING":
                 time.sleep(float(status_response.headers["Retry-After"])/1000)
             elif body["status"] == "ENQUEUED":
@@ -315,14 +316,25 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
         result = transform(xml, **{k: ET.XSLT.strparam(v) for k, v in params.items()})
         return result
 
-    def create_rss_snippet(self, theme_code, model, id_bfs=None):
-        id_bfs_string = "" if not id_bfs else f"({id_bfs})"
+    def create_rss_snippet(self, theme_code, model, target_basket_id):
         return f"""
         <item>
           <guid isPermaLink="true">mgdm2oereb_results/{self.job_id}/index.html</guid>
           <title>Transformation succeeded (theme: {theme_code}, model: {model})</title>
-          <description>The MGDM2OERB Trafo from MGDM {model} to OeREBKRM_V2_0 for {theme_code}{id_bfs_string} was successful and is published now.</description>
+          <description>The MGDM2OERB Trafo from MGDM {model} to OeREBKRM_V2_0 for {theme_code} (Basket ID: {target_basket_id}) was successful and is published now.</description>
           <link>mgdm2oereb_results/{self.job_id}/index.html</link>
           <pubDate>{utils.format_datetime(self.timestamp)}</pubDate>
         </item>
         """.encode(encoding="utf-8")
+
+    def create_json_snippet(self, theme_code, model, target_basket_id):
+        return bytes(json.dumps(
+            {
+                "job_id": self.job_id,
+                "theme_code": theme_code,
+                "target_basket_id": target_basket_id,
+                "model": model,
+                "time_stamp": self.timestamp.isoformat()
+            },
+            indent=4
+        ), 'utf-8')

@@ -35,12 +35,12 @@ Mgdm2OerebTransformatorOereblex:
       metadata: None
       keywords:
         - input
-    municipality_id:
-      title: Gemeinde ID BFS
-      description: The ID BFS of the municipality. If existing the data will be handled as a split dataset.
+    target_basket_id:
+      title: Basket ID
+      description: The Basket ID which is applied to the transformed dataset.
       schema:
         type: number
-      minOccurs: 0
+      minOccurs: 1
       maxOccurs: 1
       metadata: None
     theme_code:
@@ -167,12 +167,12 @@ Mgdm2OerebTransformator:
       metadata: None
       keywords:
         - input
-    municipality_id:
-      title: Gemeinde ID BFS
-      description: The ID BFS of the municipality. If existing the data will be handled as a split dataset.
+    target_basket_id:
+      title: Basket ID
+      description: The Basket ID which is applied to the transformed dataset.
       schema:
-        type: number
-      minOccurs: 0
+        type: string
+      minOccurs: 1
       maxOccurs: 1
       metadata: None
     theme_code:

@@ -11,7 +11,7 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
     def execute(self, data):
         mimetype = 'text/json'
         zip_file = data.get('zip_file', None)
-        municipality_id = data.get('municipality_id', None)
+        target_basket_id = data.get('target_basket_id', None)
         theme_code = data.get('theme_code', None)
         model_name = data.get('model_name', None)
         catalog = data.get('catalog', None)
@@ -28,32 +28,38 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         input_zip_file = self.create_job_file(
             self.zip_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         input_xtf_file = self.create_job_file(
             self.input_xtf_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         input_log_file = self.create_job_file(
             self.input_log_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         output_log_file = self.create_job_file(
             self.output_log_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         trafo_result_file = self.create_job_file(
             self.result_xtf_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         rss_snippet_file = self.create_job_file(
             self.rss_snippet_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
+        )
+
+        json_snippet_file = self.create_job_file(
+            self.json_snippet_file_name,
+            theme_code,
+            target_basket_id
         )
 
         input_zip_file_path = input_zip_file.save_runtime_file(
@@ -82,7 +88,7 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         catalog_file = self.create_job_file(
             self.catalog_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         catalog_file_path = catalog_file.save_runtime_file(
             catalog_content
@@ -90,7 +96,8 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         trafo_params = {
             "catalog": catalog_file_path,
             "theme_code": theme_code,
-            "model": model_name
+            "model": model_name,
+            "target_basket_id": target_basket_id
         }
         trafo_result_content = self.transform(
             xsl_trafo_path,
@@ -113,10 +120,19 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         rss_snippet_content = self.create_rss_snippet(
             theme_code,
             model_name,
-            municipality_id
+            target_basket_id
         )
         rss_snippet_file_path = rss_snippet_file.save_runtime_file(
             rss_snippet_content
+        )
+
+        json_snippet_content = self.create_json_snippet(
+            theme_code,
+            model_name,
+            target_basket_id
+        )
+        json_snippet_file_path = json_snippet_file.save_runtime_file(
+            json_snippet_content
         )
 
         # save files to be available for web access (aka publishing)
@@ -124,15 +140,19 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         input_log_file.save_result_file(input_validation_result)
         output_log_file.save_result_file(output_validation_result)
         rss_snippet_file.save_result_file(rss_snippet_content)
+        json_snippet_file.save_result_file(json_snippet_content)
         catalog_file.save_result_file(catalog_content)
 
 
         result = {
+            "theme_code": theme_code,
+            "target_basket_id": target_basket_id,
             "transformation_result": f"/{RESULTS_PATH}/{trafo_result_file.file_name()}",
             "input_validation_log": f"/{RESULTS_PATH}/{input_log_file.file_name()}",
             "used_catalog": f"/{RESULTS_PATH}/{catalog_file.file_name()}",
             "output_validation_log": f"/{RESULTS_PATH}/{output_log_file.file_name()}",
-            "rss_snippet": f"/{RESULTS_PATH}/{rss_snippet_file.file_name()}"
+            "rss_snippet": f"/{RESULTS_PATH}/{rss_snippet_file.file_name()}",
+            "json_snippet": f"/{RESULTS_PATH}/{json_snippet_file.file_name()}"
         }
         self.logger.info(result)
         return mimetype, result
@@ -166,7 +186,7 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
         oereblex_canton = data.get('oereblex_canton', None)
         dummy_office_name = data.get('dummy_office_name', None)
         dummy_office_url = data.get('dummy_office_url', None)
-        municipality_id = data.get('municipality_id', None)
+        target_basket_id = data.get('target_basket_id', None)
 
         if zip_file is None:
             raise ProcessorExecuteError('Cannot process without a zip_file')
@@ -188,37 +208,43 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
         input_zip_file = self.create_job_file(
             self.zip_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         input_xtf_file = self.create_job_file(
             self.input_xtf_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         input_log_file = self.create_job_file(
             self.input_log_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         output_log_file = self.create_job_file(
             self.output_log_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         oereblex_trafo_result_file = self.create_job_file(
             self.result_oereblex_xml_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         trafo_result_file = self.create_job_file(
             self.result_xtf_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         rss_snippet_file = self.create_job_file(
             self.rss_snippet_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
+        )
+
+        json_snippet_file = self.create_job_file(
+            self.json_snippet_file_name,
+            theme_code,
+            target_basket_id
         )
 
         input_zip_file_path = input_zip_file.save_runtime_file(
@@ -267,7 +293,7 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
         catalog_file = self.create_job_file(
             self.catalog_file_name,
             theme_code,
-            municipality_id
+            target_basket_id
         )
         catalog_file_path = catalog_file.save_runtime_file(
             catalog_content
@@ -278,7 +304,8 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
             "theme_code": theme_code,
             "model": model_name,
             "oereblex_output": oereblex_trafo_result_file_path,
-            "oereblex_host": oereblex_host
+            "oereblex_host": oereblex_host,
+            "target_basket_id": target_basket_id
         }
         trafo_result_content = self.transform(
             xsl_trafo_path,
@@ -301,11 +328,20 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
         rss_snippet_content = self.create_rss_snippet(
             theme_code,
             model_name,
-            municipality_id
+            target_basket_id
         )
 
         rss_snippet_file_path = rss_snippet_file.save_runtime_file(
             rss_snippet_content
+        )
+
+        json_snippet_content = self.create_json_snippet(
+            theme_code,
+            model_name,
+            target_basket_id
+        )
+        json_snippet_file_path = json_snippet_file.save_runtime_file(
+            json_snippet_content
         )
 
         # save files to be available for web access (aka publishing)
@@ -317,12 +353,15 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
         catalog_file.save_result_file(catalog_content)
 
         result = {
+            "theme_code": theme_code,
+            "target_basket_id": target_basket_id,
             "transformation_result": f"/{RESULTS_PATH}/{trafo_result_file.file_name()}",
             "input_validation_log": f"/{RESULTS_PATH}/{input_log_file.file_name()}",
             "used_catalog": f"/{RESULTS_PATH}/{catalog_file.file_name()}",
             "output_validation_log": f"/{RESULTS_PATH}/{output_log_file.file_name()}",
             "oereblex_trafo_result": f"/{RESULTS_PATH}/{oereblex_trafo_result_file.file_name()}",
-            "rss_snippet": f"/{RESULTS_PATH}/{rss_snippet_file.file_name()}"
+            "rss_snippet": f"/{RESULTS_PATH}/{rss_snippet_file.file_name()}",
+            "json_snippet": f"/{RESULTS_PATH}/{json_snippet_file.file_name()}"
         }
         self.logger.info(result)
         return mimetype, result
