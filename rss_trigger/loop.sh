@@ -1,7 +1,6 @@
 #!/bin/bash
-url="https://$USER:$PASSWORD@github.com/opengisch/sh.oereb.oereb-server.database.git"
 git config --global user.email "$MAIL"
-git clone $url /git
+git clone $GIT_REPO_URL /git
 
 
 while true;

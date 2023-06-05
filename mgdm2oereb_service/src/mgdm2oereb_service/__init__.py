@@ -109,12 +109,11 @@ def pubished_feed():
                 app.logger.info(f'Was not a valid XML file {file_path}. Skipping it...')
                 app.logger.info(file_handler.read())
                 continue
-    response = make_response(
+    return Response(
         render_template(
             "feed.xml",
             content=content,
             url=base_url
-        )
+        ),
+        content_type='application/rss+xml'
     )
-    response.content_type = 'application/rss+xml'
-    return response

@@ -6,3 +6,4 @@ __pycache__/
 .venv
 rss_trigger/keys
 .env
+.ssh/

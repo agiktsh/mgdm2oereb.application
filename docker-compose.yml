@@ -50,8 +50,7 @@ services:
       - RSS_STORAGE_PATH
       - RSS_URL
       - GIT_REPO_PATH
-      - USER
-      - PASSWORD
+      - GIT_REPO_URL
       - MAIL
     build:
       context: ./rss_trigger
@@ -61,6 +60,7 @@ services:
     volumes:
       - rss-storeage:/rss-storeage
       - ./rss_trigger/:/app
+      - ./.ssh:/root/.ssh
 volumes:
   data:
   rss-storeage:
