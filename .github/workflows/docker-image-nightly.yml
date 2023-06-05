@@ -40,11 +40,32 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push mgdm2oereb-service
+      - name: Build and push mgdm2oereb-gui
         uses: docker/build-push-action@v3
         with:
           context: ./mgdm2oereb_frontend
           # do not push for the moment, to avoid load
           # push: true
           tags: ghcr.io/${{ github.repository }}-mgdm2oereb-gui:${{ github.head_ref }}-${{ github.sha }}
+          target: dev
+
+  build-and-push-rss-trigger:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push rss-trigger
+        uses: docker/build-push-action@v3
+        with:
+          context: ./rss_trigger
+          # do not push for the moment, to avoid load
+          # push: true
+          tags: ghcr.io/${{ github.repository }}-rss-trigger:${{ github.head_ref }}-${{ github.sha }}
           target: dev
