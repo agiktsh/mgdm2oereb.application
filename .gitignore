@@ -4,3 +4,5 @@ __pycache__/
 *.egg-info/
 .external_libs/
 .venv
+rss_trigger/keys
+.env

@@ -8,6 +8,7 @@ pygeoapi.plugin.PLUGINS['process']['Mgdm2Oereb'] = 'mgdm2oereb_service.pygeoapi_
 pygeoapi.plugin.PLUGINS['process']['Mgdm2OerebOereblex'] = 'mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb.processors.Mgdm2OerebTransformatorOereblex'
 from markupsafe import escape
 from lxml import etree
+from lxml.etree import XMLSyntaxError
 from flask import Flask, send_file, render_template, request, make_response, Response
 from pygeoapi.flask_app import BLUEPRINT
 from pygeoapi.flask_app import STATIC_FOLDER
@@ -97,12 +98,17 @@ def pubished_feed():
 
     for file_path in file_paths:
         with open(file_path, mode="r") as file_handler:
-            root = etree.fromstring(file_handler.read())
-            for link in root.xpath('//link'):
-                link.text = f'{url}{link.text}'
-            for guid in root.xpath('//guid'):
-                guid.text = f'{url}{guid.text}'
-            content.append(etree.tostring(root, pretty_print=True).decode())
+            try:
+                root = etree.fromstring(file_handler.read())
+                for link in root.xpath('//link'):
+                    link.text = f'{url}{link.text}'
+                for guid in root.xpath('//guid'):
+                    guid.text = f'{url}{guid.text}'
+                content.append(etree.tostring(root, pretty_print=True).decode())
+            except XMLSyntaxError as e:
+                app.logger.info(f'Was not a valid XML file {file_path}. Skipping it...')
+                app.logger.info(file_handler.read())
+                continue
     response = make_response(
         render_template(
             "feed.xml",

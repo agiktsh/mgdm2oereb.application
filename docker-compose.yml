@@ -45,5 +45,22 @@ services:
       - 7000:8080
       - 7001:8000
     restart: unless-stopped
+  rss-trigger:
+    environment:
+      - RSS_STORAGE_PATH
+      - RSS_URL
+      - GIT_REPO_PATH
+      - USER
+      - PASSWORD
+      - MAIL
+    build:
+      context: ./rss_trigger
+      dockerfile: Dockerfile
+    command:
+      - /app/loop.sh
+    volumes:
+      - rss-storeage:/rss-storeage
+      - ./rss_trigger/:/app
 volumes:
   data:
+  rss-storeage:
