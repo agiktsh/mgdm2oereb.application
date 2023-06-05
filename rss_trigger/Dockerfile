@@ -5,3 +5,5 @@ RUN apt-get update && \
       git \
       python3-pip && \
     pip install reader requests
+
+COPY . /app
