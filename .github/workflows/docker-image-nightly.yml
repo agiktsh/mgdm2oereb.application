@@ -68,4 +68,3 @@ jobs:
           # do not push for the moment, to avoid load
           # push: true
           tags: ghcr.io/${{ github.repository }}-rss-trigger:${{ github.head_ref }}-${{ github.sha }}
-          target: dev

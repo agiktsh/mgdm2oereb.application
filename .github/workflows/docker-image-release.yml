@@ -65,4 +65,3 @@ jobs:
           context: ./rss_trigger
           push: true
           tags: ghcr.io/${{ github.repository }}-rss-trigger:${{ github.ref_name }}
-          target: dev
