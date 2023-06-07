@@ -6,6 +6,7 @@ This setup ships with the following components:
 - [ilivalidator_service](ilivalidator_service/README.md) (a sidecar to validate input and output INTERLIS files)
 - rss-trigger (a small sidecar to publish transformed results to the data repository)
 
+
 For more details about the components look into the readmes inside the corresponding folder.
 
 ```mermaid
