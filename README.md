@@ -4,6 +4,7 @@ This setup ships with the following components:
 - [mgdm2oereb_service](mgdm2oereb_service/README.md) (pygeoapi based endpoints for processing)]
 - [mgdm2oereb_frontend](mgdm2oereb_frontend/README.md) (simple GUI to configure and start transformation and see status of jobs)
 - [ilivalidator_service](ilivalidator_service/README.md) (a sidecar to validate input and output INTERLIS files)
+- rss-trigger (a small sidecar to publish transformed results to the data repository)
 
 For more details about the components look into the readmes inside the corresponding folder.
 
