@@ -7,7 +7,7 @@ services:
       context: ./mgdm2oereb_service
       target: dev
       args:
-        MGDM2OEREB_VERSION: c975a92b7c32bc46cca09e23593d211fc3033df9
+        MGDM2OEREB_VERSION: aa6679819c0f3a691d1d77e242405d18309d18f1
     restart: unless-stopped
     environment:
       - PYGEOAPI_CONFIG

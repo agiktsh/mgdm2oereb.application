@@ -97,7 +97,8 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
             "catalog": catalog_file_path,
             "theme_code": theme_code,
             "model": model_name,
-            "target_basket_id": target_basket_id
+            "target_basket_id": target_basket_id,
+            'xsl_path': self.mgdm2oereb_xsl_path
         }
         trafo_result_content = self.transform(
             xsl_trafo_path,
@@ -305,7 +306,8 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
             "model": model_name,
             "oereblex_output": oereblex_trafo_result_file_path,
             "oereblex_host": oereblex_host,
-            "target_basket_id": target_basket_id
+            "target_basket_id": target_basket_id,
+            'xsl_path': self.mgdm2oereb_xsl_path
         }
         trafo_result_content = self.transform(
             xsl_trafo_path,
