@@ -3,15 +3,15 @@ services:
   # The service interface which offers transformation entry points based on pygeopi processing standards
   mgdm2oereb-service:
     user: ${CURRENT_UID}:${CURRENT_GID}
-    build: 
+    build:
       context: ./mgdm2oereb_service
       target: dev
       args:
-        MGDM2OEREB_VERSION: aa6679819c0f3a691d1d77e242405d18309d18f1
+        MGDM2OEREB_VERSION: 9bb70d96256436f47122a4bce7928e17bad0eb8a
     restart: unless-stopped
     environment:
       - PYGEOAPI_CONFIG
-      - PYGEOAPI_OPENAPI 
+      - PYGEOAPI_OPENAPI
       - GUNICORN_CONFIG
       - MGDM2OEREB_TRAFO_CONFIG
       - ILIVALIDATOR_SERVICE=http://ilivalidator-service:8080/rest/jobs
