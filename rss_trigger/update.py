@@ -25,7 +25,6 @@ with make_reader(f'{os.environ.get("RSS_STORAGE_PATH")}/rss.db.sqlite') as reade
             time.sleep(seconds)
             log.info(f'Service {os.environ.get("RSS_URL")} is not available yet. Sleeping for {seconds}s')
     for entry in reader.get_entries(read=False):
-
         rss_json_link = entry.link.replace('.html', '.json')
         rss_json_response = requests.get(rss_json_link)
         if rss_json_response.status_code >= 400:
@@ -45,7 +44,10 @@ with make_reader(f'{os.environ.get("RSS_STORAGE_PATH")}/rss.db.sqlite') as reade
                 log.error(f'Problem with connection to {job_json_link}')
             job_json_dict = json.loads(job_json_response.text)
             log.info(f'Successfully read {job_json_link}')
-
+            if not job_json_dict['successful']:
+                log.info(f'Not a successful job in {job_json_link}. Skippingt this...')
+                reader.mark_entry_as_read(entry)
+                continue
             oereb_xtf_response = requests.get(oereb_xtf_link)
             if oereb_xtf_response.status_code >= 400:
                 log.error(f'Problem with connection to {oereb_xtf_link}')

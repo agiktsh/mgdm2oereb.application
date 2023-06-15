@@ -1,0 +1,497 @@
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/log.py:70} DEBUG - Logging initialized
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/api.py:680} DEBUG - Loading process manager mgdm2oereb_service.pygeoapi_plugins.process_manager.tinydb.CustomTinyDBManager
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/plugin.py:97} DEBUG - Plugins: {'Dummy': 'pygeoapi.process.manager.dummy.DummyManager', 'MongoDB': 'pygeoapi.process.manager.mongodb_.MongoDBManager', 'TinyDB': 'pygeoapi.process.manager.tinydb_.TinyDBManager'}
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/plugin.py:109} DEBUG - package name: mgdm2oereb_service.pygeoapi_plugins.process_manager.tinydb
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/plugin.py:110} DEBUG - class name: CustomTinyDBManager
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/api.py:682} INFO - Process manager plugin loaded
+[2023-06-14T22:37:42Z] {/app/src/mgdm2oereb_service/pygeoapi_plugins/process/mgdm2oereb/__init__.py:187} INFO - Created working dir /job/working_45888794-2e20-4921-bd25-01c86a6d9b61
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/l10n.py:227} DEBUG - 'en' matches requested 'en-US'
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/l10n.py:227} DEBUG - 'en' matches requested 'en-US'
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/plugin.py:97} DEBUG - Plugins: {'HelloWorld': 'pygeoapi.process.hello_world.HelloWorldProcessor'}
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/plugin.py:109} DEBUG - package name: mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb.processors
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/plugin.py:110} DEBUG - class name: Mgdm2OerebTransformator
+[2023-06-14T22:37:42Z] {/app/src/mgdm2oereb_service/pygeoapi_plugins/process/mgdm2oereb/__init__.py:187} INFO - Created working dir /job/working_836a4402-8e76-4f1e-b8ee-36bdcd815375
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/l10n.py:227} DEBUG - 'en' matches requested 'en-US'
+[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/l10n.py:227} DEBUG - 'en' matches requested 'en-US'
+components:
+  parameters:
+    bbox:
+      description: Only features that have a geometry that intersects the bounding
+        box are selected.The bounding box is provided as four or six numbers, depending
+        on whether the coordinate reference system includes a vertical axis (height
+        or depth).
+      explode: false
+      in: query
+      name: bbox
+      required: false
+      schema:
+        items:
+          type: number
+        maxItems: 6
+        minItems: 4
+        type: array
+      style: form
+    bbox-crs:
+      description: Indicates the coordinate reference system for the given bbox coordinates.
+      explode: false
+      in: query
+      name: bbox-crs
+      required: false
+      schema:
+        format: uri
+        type: string
+      style: form
+    bbox-crs-epsg:
+      description: Indicates the EPSG for the given bbox coordinates.
+      explode: false
+      in: query
+      name: bbox-crs
+      required: false
+      schema:
+        default: 4326
+        type: integer
+      style: form
+    crs:
+      description: Indicates the coordinate reference system for the results.
+      explode: false
+      in: query
+      name: crs
+      required: false
+      schema:
+        format: uri
+        type: string
+      style: form
+    f:
+      description: The optional f parameter indicates the output format which the
+        server shall provide as part of the response document.  The default format
+        is GeoJSON.
+      explode: false
+      in: query
+      name: f
+      required: false
+      schema:
+        default: json
+        enum:
+        - json
+        - html
+        - jsonld
+        type: string
+      style: form
+    lang:
+      description: The optional lang parameter instructs the server return a response
+        in a certain language, if supported.  If the language is not among the available
+        values, the Accept-Language header language will be used if it is supported.
+        If the header is missing, the default server language is used. Note that providers
+        may only support a single language (or often no language at all), that can
+        be different from the server language.  Language strings can be written in
+        a complex (e.g. "fr-CA,fr;q=0.9,en-US;q=0.8,en;q=0.7"), simple (e.g. "de")
+        or locale-like (e.g. "de-CH" or "fr_BE") fashion.
+      in: query
+      name: lang
+      required: false
+      schema:
+        default: en-US
+        enum:
+        - en-US
+        - de-CH
+        type: string
+    offset:
+      description: The optional offset parameter indicates the index within the result
+        set from which the server shall begin presenting results in the response document.  The
+        first element has an index of 0 (default).
+      explode: false
+      in: query
+      name: offset
+      required: false
+      schema:
+        default: 0
+        minimum: 0
+        type: integer
+      style: form
+    properties:
+      description: The properties that should be included for each feature. The parameter
+        value is a comma-separated list of property names.
+      explode: false
+      in: query
+      name: properties
+      required: false
+      schema:
+        items:
+          type: string
+        type: array
+      style: form
+    skipGeometry:
+      description: This option can be used to skip response geometries for each feature.
+      explode: false
+      in: query
+      name: skipGeometry
+      required: false
+      schema:
+        default: false
+        type: boolean
+      style: form
+    vendorSpecificParameters:
+      description: Additional "free-form" parameters that are not explicitly defined
+      in: query
+      name: vendorSpecificParameters
+      schema:
+        additionalProperties: true
+        type: object
+      style: form
+  responses:
+    '200':
+      description: successful operation
+    Queryables:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/queryables'
+      description: successful queryables operation
+    default:
+      content:
+        application/json:
+          schema:
+            $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/schemas/exception.yaml
+      description: Unexpected error
+  schemas:
+    queryable:
+      properties:
+        description:
+          description: a human-readable narrative describing the queryable
+          type: string
+        language:
+          default:
+          - en
+          description: the language used for the title and description
+          type: string
+        queryable:
+          description: the token that may be used in a CQL predicate
+          type: string
+        title:
+          description: a human readable title for the queryable
+          type: string
+        type:
+          description: the data type of the queryable
+          type: string
+        type-ref:
+          description: a reference to the formal definition of the type
+          format: url
+          type: string
+      required:
+      - queryable
+      - type
+      type: object
+    queryables:
+      properties:
+        queryables:
+          items:
+            $ref: '#/components/schemas/queryable'
+          type: array
+      required:
+      - queryables
+      type: object
+info:
+  contact:
+    email: info@opengis.ch
+    name: OPENGIS.ch
+    url: https://www.opengis.ch/
+  description: MGDM2OEREB Service provides transformation processes from MGDMs to
+    OeREBKRMtrsfr
+  license:
+    name: CC-BY 4.0 license
+    url: https://creativecommons.org/licenses/by/4.0/
+  termsOfService: https://creativecommons.org/licenses/by/4.0/
+  title: MGDM2OEREB Service
+  version: 0.15.0
+  x-keywords:
+  - INTERLIS
+  - OeREBKRMtrsfr
+  - MGDM2OEREB
+  - PLR
+  - Cadastre of Public Law Restrictions
+  - PLR Cadastre
+openapi: 3.0.2
+paths:
+  /:
+    get:
+      description: Landing page
+      operationId: getLandingPage
+      parameters:
+      - $ref: '#/components/parameters/f'
+      - $ref: '#/components/parameters/lang'
+      responses:
+        '200':
+          $ref: https://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/ogcapi-features-1.yaml#/components/responses/LandingPage
+        '400':
+          $ref: https://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/ogcapi-features-1.yaml#/components/responses/InvalidParameter
+        '500':
+          $ref: https://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/ogcapi-features-1.yaml#/components/responses/ServerError
+      summary: Landing page
+      tags:
+      - server
+  /collections:
+    get:
+      description: Collections
+      operationId: getCollections
+      parameters:
+      - $ref: '#/components/parameters/f'
+      - $ref: '#/components/parameters/lang'
+      responses:
+        '200':
+          $ref: https://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/ogcapi-features-1.yaml#/components/responses/LandingPage
+        '400':
+          $ref: https://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/ogcapi-features-1.yaml#/components/responses/InvalidParameter
+        '500':
+          $ref: https://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/ogcapi-features-1.yaml#/components/responses/ServerError
+      summary: Collections
+      tags:
+      - server
+  /conformance:
+    get:
+      description: API conformance definition
+      operationId: getConformanceDeclaration
+      parameters:
+      - $ref: '#/components/parameters/f'
+      - $ref: '#/components/parameters/lang'
+      responses:
+        '200':
+          $ref: https://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/ogcapi-features-1.yaml#/components/responses/LandingPage
+        '400':
+          $ref: https://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/ogcapi-features-1.yaml#/components/responses/InvalidParameter
+        '500':
+          $ref: https://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/ogcapi-features-1.yaml#/components/responses/ServerError
+      summary: API conformance definition
+      tags:
+      - server
+  /jobs:
+    get:
+      description: Retrieve a list of jobs
+      operationId: getJobs
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '404':
+          $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/responses/NotFound.yaml
+        default:
+          $ref: '#/components/responses/default'
+      summary: Retrieve jobs list
+      tags:
+      - jobs
+  /jobs/{jobId}:
+    delete:
+      description: Cancel / delete job
+      operationId: deleteJob
+      parameters:
+      - &id001
+        description: job identifier
+        in: path
+        name: jobId
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '404':
+          $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/responses/NotFound.yaml
+        default:
+          $ref: '#/components/responses/default'
+      summary: Cancel / delete job
+      tags:
+      - jobs
+    get:
+      description: Retrieve job details
+      operationId: getJob
+      parameters:
+      - *id001
+      - $ref: '#/components/parameters/f'
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '404':
+          $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/responses/NotFound.yaml
+        default:
+          $ref: '#/components/responses/default'
+      summary: Retrieve job details
+      tags:
+      - jobs
+  /jobs/{jobId}/results:
+    get:
+      description: Retrive job resiults
+      operationId: getJobResults
+      parameters:
+      - *id001
+      - $ref: '#/components/parameters/f'
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '404':
+          $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/responses/NotFound.yaml
+        default:
+          $ref: '#/components/responses/default'
+      summary: Retrieve job results
+      tags:
+      - jobs
+  /openapi:
+    get:
+      description: This document
+      operationId: getOpenapi
+      parameters:
+      - $ref: '#/components/parameters/f'
+      - $ref: '#/components/parameters/lang'
+      - description: UI to render the OpenAPI document
+        explode: false
+        in: query
+        name: ui
+        required: false
+        schema:
+          default: swagger
+          enum:
+          - swagger
+          - redoc
+          type: string
+        style: form
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: https://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/ogcapi-features-1.yaml#/components/responses/InvalidParameter
+        default:
+          $ref: '#/components/responses/default'
+      summary: This document
+      tags:
+      - server
+  /processes:
+    get:
+      description: Processes
+      operationId: getProcesses
+      parameters:
+      - $ref: '#/components/parameters/f'
+      responses:
+        '200':
+          $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/responses/ProcessList.yaml
+        default:
+          $ref: '#/components/responses/default'
+      summary: Processes
+      tags:
+      - server
+  /processes/mgdm2oereb:
+    get:
+      description: The process which will execute the transformation from the MGDM
+        to OeREBKRM_V2_0.ili.
+      operationId: describeMgdm2oerebProcess
+      parameters:
+      - $ref: '#/components/parameters/f'
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        default:
+          $ref: '#/components/responses/default'
+      summary: Get process metadata
+      tags:
+      - mgdm2oereb
+  /processes/mgdm2oereb-oereblex:
+    get:
+      description: The process which will execute the transformation from the MGDM
+        to OeREBKRM_V2_0.ili.
+      operationId: describeMgdm2oereb-oereblexProcess
+      parameters:
+      - $ref: '#/components/parameters/f'
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        default:
+          $ref: '#/components/responses/default'
+      summary: Get process metadata
+      tags:
+      - mgdm2oereb-oereblex
+  /processes/mgdm2oereb-oereblex/execution:
+    post:
+      description: The process which will execute the transformation from the MGDM
+        to OeREBKRM_V2_0.ili.
+      operationId: executeMgdm2oereb-oereblexJob
+      requestBody:
+        content:
+          application/json:
+            example:
+              inputs:
+                catalog: https://raw.githubusercontent.com/openoereb/ch.sh.mgdm2oereb_supplement_katalog/main/ch.sh.OeREBKRMkvs_supplement.xml
+                dummy_office_name: AGI SH
+                dummy_office_url: https://sh.ch/CMS/Webseite/Kanton-Schaffhausen/Beh-rde/Verwaltung/Volkswirtschaftsdepartement/Amt-f-r-Geoinformation-3854-DE.html
+                model_name: Planungszonen_V1_1
+                oereblex_canton: sh
+                oereblex_host: oereblex.sh.ch
+                theme_code: ch.Planungszonen
+                zip_file: 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
+            schema:
+              $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/schemas/execute.yaml
+        description: Mandatory execute request JSON
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '201':
+          $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/responses/ExecuteAsync.yaml
+        '404':
+          $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/responses/NotFound.yaml
+        '500':
+          $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/responses/ServerError.yaml
+        default:
+          $ref: '#/components/responses/default'
+      summary: Process MGDM2OEREB-oereblex execution
+      tags:
+      - mgdm2oereb-oereblex
+  /processes/mgdm2oereb/execution:
+    post:
+      description: The process which will execute the transformation from the MGDM
+        to OeREBKRM_V2_0.ili.
+      operationId: executeMgdm2oerebJob
+      requestBody:
+        content:
+          application/json:
+            example:
+              inputs:
+                catalog: https://raw.githubusercontent.com/openoereb/ch.sh.mgdm2oereb_supplement_katalog/main/ch.sh.OeREBKRMkvs_supplement.xml
+                model_name: Planungszonen_V1_1
+                theme_code: ch.Planungszonen
+                zip_file: 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
+            schema:
+              $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/schemas/execute.yaml
+        description: Mandatory execute request JSON
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '201':
+          $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/responses/ExecuteAsync.yaml
+        '404':
+          $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/responses/NotFound.yaml
+        '500':
+          $ref: https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/responses/ServerError.yaml
+        default:
+          $ref: '#/components/responses/default'
+      summary: Process MGDM2OEREB execution
+      tags:
+      - mgdm2oereb
+servers:
+- description: MGDM2OEREB Service provides transformation processes from MGDMs to
+    OeREBKRMtrsfr
+  url: http://localhost:5000/oapi
+tags:
+- description: MGDM2OEREB Service provides transformation processes from MGDMs to
+    OeREBKRMtrsfr
+  externalDocs:
+    description: information
+    url: https://example.org
+  name: server
+- description: Process jobs
+  name: jobs
+- description: SpatioTemporal Asset Catalog
+  name: stac
+- description: The process which will execute the transformation from the MGDM to
+    OeREBKRM_V2_0.ili.
+  name: mgdm2oereb-oereblex
+- description: The process which will execute the transformation from the MGDM to
+    OeREBKRM_V2_0.ili.
+  name: mgdm2oereb
+

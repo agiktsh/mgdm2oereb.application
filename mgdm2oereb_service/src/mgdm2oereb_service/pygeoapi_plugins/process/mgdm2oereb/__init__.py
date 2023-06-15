@@ -241,7 +241,8 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
             sleep_time_ms (int): Validation runs async. So we need to check when our job was ready. This
                 defines the wait time in milliseconds for next ready check. (default=1000)
         Returns:
-            bin: The validation log content as binary encoded as delivered by service.
+            (bool, bytes): The status (failed True/False) and the validation log content as binary encoded
+                as delivered by service.
         Raises:
             ProcessorExecuteError
         """
@@ -259,7 +260,7 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
             status_response = requests.get(status_url)
             body = json.loads(status_response.text)
             logging.info(body)
-            if body["status"] == "SUCCEEDED":
+            if body["status"] in ["FAILED", "SUCCEEDED"]:
                 ili_log_path = body['logFileLocation']
                 logging.info(ili_log_path)
                 response = requests.get(ili_log_path)
@@ -267,7 +268,7 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
                 # encoding = requests.utils.get_encoding_from_headers(response.headers)
                 logging.info(log_content)
                 # logging.info(encoding)
-                return bytes(log_content, 'utf-8')
+                return "...validation failed" in log_content, bytes(log_content, 'utf-8')
             elif body["status"] == "PROCESSING":
                 time.sleep(float(status_response.headers["Retry-After"])/1000)
             elif body["status"] == "ENQUEUED":
@@ -316,25 +317,28 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
         result = transform(xml, **{k: ET.XSLT.strparam(v) for k, v in params.items()})
         return result
 
-    def create_rss_snippet(self, theme_code, model, target_basket_id):
+    def create_rss_snippet(self, theme_code, model, target_basket_id, output_validation_failed):
+        status_string = "failed" if output_validation_failed else "succeeded"
+        published_string = "failed and was NOT published" if output_validation_failed else "was successful and is published now"
         return f"""
         <item>
           <guid isPermaLink="true">mgdm2oereb_results/{self.job_id}/index.html</guid>
-          <title>Transformation succeeded (theme: {theme_code}, model: {model})</title>
-          <description>The MGDM2OERB Trafo from MGDM {model} to OeREBKRM_V2_0 for {theme_code} (Basket ID: {target_basket_id}) was successful and is published now.</description>
+          <title>Transformation {status_string} (theme: {theme_code}, model: {model})</title>
+          <description>The MGDM2OERB Trafo from MGDM {model} to OeREBKRM_V2_0 for {theme_code} (Basket ID: {target_basket_id}) {published_string}.</description>
           <link>mgdm2oereb_results/{self.job_id}/index.html</link>
           <pubDate>{utils.format_datetime(self.timestamp)}</pubDate>
         </item>
         """.encode(encoding="utf-8")
 
-    def create_json_snippet(self, theme_code, model, target_basket_id):
+    def create_json_snippet(self, theme_code, model, target_basket_id, output_validation_failed):
         return bytes(json.dumps(
             {
                 "job_id": self.job_id,
                 "theme_code": theme_code,
                 "target_basket_id": target_basket_id,
                 "model": model,
-                "time_stamp": self.timestamp.isoformat()
+                "time_stamp": self.timestamp.isoformat(),
+                "successful": not output_validation_failed
             },
             indent=4
         ), 'utf-8')

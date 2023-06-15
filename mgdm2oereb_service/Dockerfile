@@ -1,11 +1,11 @@
-FROM geopython/pygeoapi:latest as dev
+FROM geopython/pygeoapi:0.15.0 as dev
 
 RUN apt-get update && \
     apt-get install -y \
       make \
       git
 
-ARG MGDM2OEREB_VERSION=9bb70d96256436f47122a4bce7928e17bad0eb8a
+ARG MGDM2OEREB_VERSION=228f9fddda6f5eff6930422c24775f34d9028dc4
 RUN git clone https://github.com/openoereb/mgdm2oereb.git /mgdm2oereb && \
     cd /mgdm2oereb && \
     git checkout ${MGDM2OEREB_VERSION}

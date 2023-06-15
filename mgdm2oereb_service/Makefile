@@ -52,4 +52,4 @@ updates: requirements.txt requirements-tests.txt
 
 .PHONY: serve-dev
 serve-dev: $(PYGEOAPI_OPENAPI)
-	gunicorn mgdm2oereb_service:app --config $(GUNICORN_CONFIG) --reload --log-level debug
+	gunicorn mgdm2oereb_service:app --config $(GUNICORN_CONFIG) --reload --log-level debug --workers=8
