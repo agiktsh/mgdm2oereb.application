@@ -1,20 +1,16 @@
 import json
 
-import pygeoapi
 import os
 import glob
-pygeoapi.plugin.PLUGINS['process_manager']['CustomTinyDB'] = 'mgdm2oereb_service.pygeoapi_plugins.process_manager.tinydb.CustomTinyDBManager'
-pygeoapi.plugin.PLUGINS['process']['Mgdm2Oereb'] = 'mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb.processors.Mgdm2OerebTransformator'
-pygeoapi.plugin.PLUGINS['process']['Mgdm2OerebOereblex'] = 'mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb.processors.Mgdm2OerebTransformatorOereblex'
-from markupsafe import escape
 from lxml import etree
 from lxml.etree import XMLSyntaxError
-from flask import Flask, send_file, render_template, request, make_response, Response
+from flask import Flask, send_file, render_template, request, Response
 from pygeoapi.flask_app import BLUEPRINT
 from pygeoapi.flask_app import STATIC_FOLDER
 from urllib.parse import urlparse
 
 parser = etree.XMLParser(remove_blank_text=True)
+
 
 RESULTS_PATH = "mgdm2oereb_results"
 
@@ -43,6 +39,7 @@ def mgdm2oereb_results_xtf(file_name):
         mimetype=mimetype,
         download_name=file_name
     )
+
 
 @app.route(f'/{RESULTS_PATH}/<path:uid>/index.html')
 def mgdm2oereb_results_index(uid):

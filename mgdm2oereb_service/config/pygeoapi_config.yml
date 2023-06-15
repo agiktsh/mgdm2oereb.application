@@ -20,7 +20,7 @@ server:
         url: https://tile.openstreetmap.org/{z}/{x}/{y}.png
         attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
     manager:
-        name: CustomTinyDB
+        name: mgdm2oereb_service.pygeoapi_plugins.process_manager.tinydb.CustomTinyDBManager
         connection: /tmp/pygeoapi-process-manager.db
         output_dir: /tmp/
     # ogc_schemas_location: /opt/schemas.opengis.net
@@ -81,8 +81,8 @@ resources:
     mgdm2oereb-oereblex:
         type: process
         processor:
-            name: Mgdm2OerebOereblex
+            name: mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb.processors.Mgdm2OerebTransformatorOereblex
     mgdm2oereb:
         type: process
         processor:
-            name: Mgdm2Oereb
+            name: mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb.processors.Mgdm2OerebTransformator

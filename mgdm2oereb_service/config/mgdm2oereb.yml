@@ -24,6 +24,9 @@ Mgdm2OerebTransformatorOereblex:
       title: OeREBKRM_V2_0
       href: https://models.geo.admin.ch/V_D/OeREB/OeREBKRM_V2_0.ili
       hreflang: 'de-CH'
+  jobControlOptions:
+    - 'sync-execute'
+    - 'async-execute'
   inputs:
     zip_file:
       title: ZIP-File
@@ -156,6 +159,9 @@ Mgdm2OerebTransformator:
       title: OeREBKRM_V2_0
       href: https://models.geo.admin.ch/V_D/OeREB/OeREBKRM_V2_0.ili
       hreflang: 'de-CH'
+  jobControlOptions:
+    - 'sync-execute'
+    - 'async-execute'
   inputs:
     zip_file:
       title: ZIP-File

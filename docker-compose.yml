@@ -7,8 +7,10 @@ services:
       context: ./mgdm2oereb_service
       target: dev
       args:
-        MGDM2OEREB_VERSION: 9bb70d96256436f47122a4bce7928e17bad0eb8a
+        MGDM2OEREB_VERSION: 228f9fddda6f5eff6930422c24775f34d9028dc4
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       - PYGEOAPI_CONFIG
       - PYGEOAPI_OPENAPI
@@ -16,7 +18,7 @@ services:
       - MGDM2OEREB_TRAFO_CONFIG
       - ILIVALIDATOR_SERVICE=http://ilivalidator-service:8080/rest/jobs
       - MGDM2OEREB_DATA
-      - FLASK_ENV=${MGDM2OEREB_SERVICE_FLASK_ENV}
+      - FLASK_DEBUG=${MGDM2OEREB_SERVICE_FLASK_ENV}
     volumes:
       - data:${MGDM2OEREB_DATA}
       - ./mgdm2oereb_service:/app
