@@ -255,7 +255,7 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
         if all_objects_accessible:
             query_string = '?allObjectsAccessible=true'
         else:
-            query_string = '?allObjectsAccessible=true'
+            query_string = '?allObjectsAccessible=false'
 
         create_job_response = requests.post(
             ilivalidator_service_url + query_string,
