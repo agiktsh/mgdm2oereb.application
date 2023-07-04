@@ -251,6 +251,7 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
 
         files = {
             'file': (result_xtf_file_name, xtf_content),
+            'allObjectsAccessible': 'true' if all_objects_accessible else 'false'
         }
         if all_objects_accessible:
             query_string = '?allObjectsAccessible=true'
