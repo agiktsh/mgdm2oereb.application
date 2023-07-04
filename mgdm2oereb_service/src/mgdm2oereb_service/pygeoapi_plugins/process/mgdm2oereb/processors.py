@@ -90,7 +90,8 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         input_validation_failed, input_validation_result = self.validate(
             input_xtf_content,
             self.ilivalidator_service_url,
-            self.result_xtf_file_name
+            self.result_xtf_file_name,
+            all_objects_accessible=False
         )
         input_log_file_path = input_log_file.save_runtime_file(
             input_validation_result
@@ -145,7 +146,8 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         output_validation_failed, output_validation_result = self.validate(
             trafo_result_content,
             self.ilivalidator_service_url,
-            self.result_xtf_file_name
+            self.result_xtf_file_name,
+            all_objects_accessible=True
         )
         output_log_file_path = output_log_file.save_runtime_file(
             output_validation_result
@@ -291,7 +293,8 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
         input_validation_result = self.validate(
             input_xtf_content,
             self.ilivalidator_service_url,
-            self.result_xtf_file_name
+            self.result_xtf_file_name,
+            all_objects_accessible=False
         )
 
         input_log_file_path = input_log_file.save_runtime_file(
@@ -350,7 +353,8 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
         output_validation_result = self.validate(
             trafo_result_content,
             self.ilivalidator_service_url,
-            self.result_xtf_file_name
+            self.result_xtf_file_name,
+            all_objects_accessible=True
         )
         output_log_file_path = output_log_file.save_runtime_file(
             output_validation_result

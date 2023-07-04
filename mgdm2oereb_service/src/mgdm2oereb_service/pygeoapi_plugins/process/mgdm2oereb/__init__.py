@@ -230,7 +230,8 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
                 return xtf_file.read()
 
     @staticmethod
-    def validate(xtf_content, ilivalidator_service_url, result_xtf_file_name, sleep_time_ms=1000):
+    def validate(xtf_content, ilivalidator_service_url, result_xtf_file_name, sleep_time_ms=1000,
+                 all_objects_accessible=True):
         """
         Uses the external ILI validator service to validate an XTF.
 
@@ -240,6 +241,7 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
             result_xtf_file_name (str): The file name corresponding to xtf_content (for logging reasons).
             sleep_time_ms (int): Validation runs async. So we need to check when our job was ready. This
                 defines the wait time in milliseconds for next ready check. (default=1000)
+            all_objects_accessible (bool): If the switch should be on or off.
         Returns:
             (bool, bytes): The status (failed True/False) and the validation log content as binary encoded
                 as delivered by service.
@@ -250,10 +252,15 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
         files = {
             'file': (result_xtf_file_name, xtf_content),
         }
+        if all_objects_accessible:
+            query_string = '?allObjectsAccessible=true'
+        else:
+            query_string = '?allObjectsAccessible=true'
 
         create_job_response = requests.post(
-            ilivalidator_service_url,
-            files=files
+            ilivalidator_service_url + query_string,
+            files=files,
+
         )
         status_url = create_job_response.headers["Operation-Location"]
         while True:
