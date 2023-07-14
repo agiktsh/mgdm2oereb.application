@@ -263,11 +263,18 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
                 ilivalidator_service_url + query_string,
                 files=files
             )
+            if create_job_response.status_code < 200 or create_job_response.status_code > 299:
+                return True, bytes(
+                    f'could not talk to ilivalidator HTTP code was {create_job_response.status_code}', 'utf-8'
+                )
             status_url = create_job_response.headers["Operation-Location"]
+            last_log = None
             while True:
                 status_response = requests.get(status_url)
                 body = json.loads(status_response.text)
-                logging.info(body)
+                if last_log != body["status"]:
+                    logging.info(body)
+                    last_log = body["status"]
                 if body["status"] in ["FAILED", "SUCCEEDED"]:
                     ili_log_path = body['logFileLocation']
                     logging.info(ili_log_path)
