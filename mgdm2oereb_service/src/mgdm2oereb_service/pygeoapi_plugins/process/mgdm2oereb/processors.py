@@ -289,7 +289,7 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
         input_xtf_file_path = input_xtf_file.save_runtime_file(
             input_xtf_content
         )
-
+        # TODO: handle validation status correctly
         input_validation_result = self.validate(
             input_xtf_content,
             self.ilivalidator_service_url,
@@ -350,6 +350,7 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
         trafo_result_file_path = trafo_result_file.save_runtime_file(
             trafo_result_content
         )
+        # TODO: handle validation status correctly
         output_validation_result = self.validate(
             trafo_result_content,
             self.ilivalidator_service_url,

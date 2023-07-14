@@ -1,6 +1,8 @@
 import json
 import os
 import uuid
+from http.client import RemoteDisconnected
+
 import yaml
 import logging
 import base64
@@ -256,32 +258,42 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
             query_string = '?allObjectsAccessible=true'
         else:
             query_string = '?allObjectsAccessible=false'
+        try:
+            create_job_response = requests.post(
+                ilivalidator_service_url + query_string,
+                files=files
+            )
+            if create_job_response.status_code < 200 or create_job_response.status_code > 299:
+                return True, bytes(
+                    f'could not talk to ilivalidator HTTP code was {create_job_response.status_code}', 'utf-8'
+                )
+            status_url = create_job_response.headers["Operation-Location"]
+            last_log = None
+            while True:
+                status_response = requests.get(status_url)
+                body = json.loads(status_response.text)
+                if last_log != body["status"]:
+                    logging.info(body)
+                    last_log = body["status"]
+                if body["status"] in ["FAILED", "SUCCEEDED"]:
+                    ili_log_path = body['logFileLocation']
+                    logging.info(ili_log_path)
+                    response = requests.get(ili_log_path)
+                    log_content = response.text
+                    # encoding = requests.utils.get_encoding_from_headers(response.headers)
+                    logging.info(log_content)
+                    # logging.info(encoding)
+                    return "...validation failed" in log_content, bytes(log_content, 'utf-8')
+                elif body["status"] == "PROCESSING":
+                    time.sleep(float(status_response.headers["Retry-After"])/1000)
+                elif body["status"] == "ENQUEUED":
+                    time.sleep(sleep_time_ms/1000)
+                else:
+                    raise AttributeError("unknown STATUS of ilivalidator service {}".format(body["status"]))
+        except Exception as e:
+            logging.error(e)
+            return True, bytes(str(e), 'utf-8')
 
-        create_job_response = requests.post(
-            ilivalidator_service_url + query_string,
-            files=files,
-
-        )
-        status_url = create_job_response.headers["Operation-Location"]
-        while True:
-            status_response = requests.get(status_url)
-            body = json.loads(status_response.text)
-            logging.info(body)
-            if body["status"] in ["FAILED", "SUCCEEDED"]:
-                ili_log_path = body['logFileLocation']
-                logging.info(ili_log_path)
-                response = requests.get(ili_log_path)
-                log_content = response.text
-                # encoding = requests.utils.get_encoding_from_headers(response.headers)
-                logging.info(log_content)
-                # logging.info(encoding)
-                return "...validation failed" in log_content, bytes(log_content, 'utf-8')
-            elif body["status"] == "PROCESSING":
-                time.sleep(float(status_response.headers["Retry-After"])/1000)
-            elif body["status"] == "ENQUEUED":
-                time.sleep(sleep_time_ms/1000)
-            else:
-                raise AttributeError("unknown STATUS of ilivalidator service {}".format(body["status"]))
 
     @staticmethod
     def download_catalogue(catalogue_url):
