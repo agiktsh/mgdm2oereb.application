@@ -7,7 +7,7 @@ services:
       context: ./mgdm2oereb_service
       target: dev
       args:
-        MGDM2OEREB_VERSION: eb295ea16768afd5ebed54669db551f078339ad9
+        MGDM2OEREB_VERSION: 847baaad845696fe576b9e29ef11b1e6483a7c0a
     restart: unless-stopped
     env_file:
       - .env
