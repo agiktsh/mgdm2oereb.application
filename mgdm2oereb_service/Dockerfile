@@ -5,7 +5,7 @@ RUN apt-get update && \
       make \
       git
 
-ARG MGDM2OEREB_VERSION=992e6da0a9e03402a2e13ab22fac2ccea234fe21
+ARG MGDM2OEREB_VERSION=5d99c8c6c7bad4df6a9bd5e40013b05ceb88f28e
 RUN git clone https://github.com/openoereb/mgdm2oereb.git /mgdm2oereb && \
     cd /mgdm2oereb && \
     git checkout ${MGDM2OEREB_VERSION}
