@@ -15,6 +15,7 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         theme_code = data.get('theme_code', None)
         model_name = data.get('model_name', None)
         catalog = data.get('catalog', None)
+        input_validation = data.get('input_validation', False) in [True, 'true', 1, '1', 'True']
         result = {
             "theme_code": theme_code,
             "target_basket_id": target_basket_id
@@ -87,20 +88,21 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         except Exception as e:
             result.update({'error': e})
             return mimetype, result
-        input_validation_failed, input_validation_result = self.validate(
-            input_xtf_content,
-            self.ilivalidator_service_url,
-            self.result_xtf_file_name,
-            all_objects_accessible=False
-        )
-        input_log_file_path = input_log_file.save_runtime_file(
-            input_validation_result
-        )
-        input_log_file.save_result_file(input_validation_result)
-        result.update({"input_validation_log": f"/{RESULTS_PATH}/{input_log_file.file_name()}"})
-        if input_validation_failed:
-            result.update({'error': 'Validation of input file failed.'})
-            return mimetype, result
+        if input_validation:
+            input_validation_failed, input_validation_result = self.validate(
+                input_xtf_content,
+                self.ilivalidator_service_url,
+                self.result_xtf_file_name,
+                all_objects_accessible=False
+            )
+            input_log_file_path = input_log_file.save_runtime_file(
+                input_validation_result
+            )
+            input_log_file.save_result_file(input_validation_result)
+            result.update({"input_validation_log": f"/{RESULTS_PATH}/{input_log_file.file_name()}"})
+            if input_validation_failed:
+                result.update({'error': 'Validation of input file failed.'})
+                return mimetype, result
 
         xsl_trafo_path = os.path.join(
             self.mgdm2oereb_xsl_path,
@@ -191,6 +193,9 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
 
 
 class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
+
+    # TODO: Implement switch "input_validation": true as parameter like it is implemented in the non oereblex
+    # trafo
 
     def __init__(self, processor_def):
 
