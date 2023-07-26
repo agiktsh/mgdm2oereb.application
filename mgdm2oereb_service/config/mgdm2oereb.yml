@@ -211,6 +211,16 @@ Mgdm2OerebTransformator:
       metadata: None
       keywords:
         - message
+    input_validation:
+      title: Input Validation
+      description: "Switch to enable input validation (default: False)"
+      schema:
+        type: boolean
+      minOccurs: 0
+      maxOccurs: 1
+      metadata: None
+      keywords:
+        - message
   outputs:
     result:
       title: Transformed XTF File
