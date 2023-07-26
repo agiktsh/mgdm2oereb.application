@@ -16,9 +16,9 @@ services:
       - PYGEOAPI_OPENAPI
       - GUNICORN_CONFIG
       - MGDM2OEREB_TRAFO_CONFIG
-      - ILIVALIDATOR_SERVICE=http://ilivalidator-service:8080/rest/jobs
+      - "ILIVALIDATOR_SERVICE=http://ilivalidator-service:8080/api/jobs"
       - MGDM2OEREB_DATA
-      - FLASK_DEBUG=${MGDM2OEREB_SERVICE_FLASK_ENV}
+      - "FLASK_DEBUG=${MGDM2OEREB_SERVICE_FLASK_ENV}"
     volumes:
       - data:${MGDM2OEREB_DATA}
       - ./mgdm2oereb_service:/app
@@ -40,7 +40,7 @@ services:
     ports:
       - "8080:8080"
   ilivalidator-service:
-    image: sogis/ilivalidator-web-service:2
+    image: sogis/ilivalidator-web-service:2.0.25
     environment:
       TZ: Europe/Zurich
     ports:
