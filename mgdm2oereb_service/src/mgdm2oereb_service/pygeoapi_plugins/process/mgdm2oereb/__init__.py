@@ -1,6 +1,7 @@
 import json
 import os
 import uuid
+import io
 from http.client import RemoteDisconnected
 
 import yaml
@@ -106,8 +107,9 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
         super().__init__(processor_def, self.configuration)
         self.ilivalidator_service_url = os.environ.get(
             'ILIVALIDATOR_SERVICE',
-            'http://ilivalidator-service:8080/rest/jobs'
+            'http://ilivalidator-service:8080/api/jobs'
         )
+
         self.logger = logging.getLogger(__name__)
         self.job_id = self.create_uuid()
         self.data_path = os.environ.get(
@@ -252,15 +254,20 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
         """
 
         files = {
-            'file': (result_xtf_file_name, xtf_content)
+            'files': [(result_xtf_file_name, xtf_content)]
         }
-        if all_objects_accessible:
-            query_string = '?allObjectsAccessible=true'
-        else:
-            query_string = '?allObjectsAccessible=false'
+
+        if not all_objects_accessible:
+            content = [
+                '["PARAMETER"]',
+                'allObjectsAccessible=false'
+            ]
+            with io.StringIO() as f:
+                f.write('\n'.join(content))
+                files['files'].append(('config.ini', f))
         try:
             create_job_response = requests.post(
-                ilivalidator_service_url + query_string,
+                ilivalidator_service_url,
                 files=files
             )
             if create_job_response.status_code < 200 or create_job_response.status_code > 299:
