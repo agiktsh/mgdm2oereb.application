@@ -42,6 +42,7 @@ sequenceDiagram;
     Client->>API: Call for result if Job status [TODO add correct Status]
     API->>Client: Offers Download of Result
 ```
+
 ## Example with ÖREBlex
 
 The following input data should be sent as POST as payload in the body.
