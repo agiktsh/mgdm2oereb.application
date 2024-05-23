@@ -68,3 +68,23 @@ jobs:
           # do not push for the moment, to avoid load
           # push: true
           tags: ghcr.io/${{ github.repository }}-rss-trigger:${{ github.head_ref }}-${{ github.sha }}
+
+  build-and-push-ilivalidator-service:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push ilivalidator-service
+        uses: docker/build-push-action@v3
+        with:
+          context: ./ilivalidator_service
+          # do not push for the moment, to avoid load
+          # push: true
+          tags: ghcr.io/${{ github.repository }}-ilivalidator-service:${{ github.head_ref }}-${{ github.sha }}
