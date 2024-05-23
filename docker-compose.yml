@@ -39,8 +39,12 @@ services:
       - data:${MGDM2OEREB_DATA}:ro
     ports:
       - "8080:8080"
+    deploy:
+      replicas: 0
   ilivalidator-service:
-    image: sogis/ilivalidator-web-service:2
+    build:
+      context: ilivalidator_service
+      dockerfile: Dockerfile
     environment:
       TZ: Europe/Zurich
     ports:
@@ -57,12 +61,11 @@ services:
     build:
       context: ./rss_trigger
       dockerfile: Dockerfile
-    command:
-      - /app/loop.sh
     volumes:
       - rss-storeage:/rss-storeage
       - ./rss_trigger/:/app
       - ./.ssh:/root/.ssh
+    restart: unless-stopped
 volumes:
   data:
   rss-storeage:

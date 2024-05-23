@@ -10,10 +10,14 @@ RUN git clone https://github.com/openoereb/mgdm2oereb.git /mgdm2oereb && \
     cd /mgdm2oereb && \
     git checkout ${MGDM2OEREB_VERSION}
 
+ARG TINI_VERSION=v0.19.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
 COPY ./ /app
 
 WORKDIR /app
 
 RUN make install build-dev
 
-ENTRYPOINT make serve-dev
+ENTRYPOINT [ "/tini", "--", "make", "serve-dev" ]

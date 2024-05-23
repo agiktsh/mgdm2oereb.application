@@ -1,0 +1,1 @@
+java -Xmx2G -XX:+UseParallelGC -jar application.jar --spring.profiles.active=docker

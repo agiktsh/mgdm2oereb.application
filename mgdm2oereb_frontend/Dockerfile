@@ -19,6 +19,10 @@ ENV DEVELOPMENT=true \
     LANGUAGE=en_US \
     LC_ALL=en_US.UTF-8
 
+ARG TINI_VERSION=v0.19.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
 COPY ./ /app
 
 WORKDIR /app
@@ -27,4 +31,4 @@ RUN pip3 install -r requirements.txt -r requirements-tests.txt
 
 RUN make install build build-dev
 
-ENTRYPOINT make serve-dev
+ENTRYPOINT [ "/tini", "--", "make", "serve-dev" ]
