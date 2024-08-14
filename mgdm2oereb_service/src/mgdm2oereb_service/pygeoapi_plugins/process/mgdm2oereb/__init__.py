@@ -1,7 +1,6 @@
 import json
 import os
 import uuid
-from http.client import RemoteDisconnected
 
 import yaml
 import logging
@@ -13,6 +12,7 @@ import datetime
 from lxml import etree as ET
 from email import utils
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
+from pygeoapi.util import JobStatus
 
 
 class JobFile(object):
@@ -39,6 +39,10 @@ class JobFile(object):
         self.theme_code = theme_code
         self.target_basket_id = target_basket_id
         self.time_string = timestamp.strftime('%Y-%m-%d_%H%M%S%s')
+        self.runtime_content = None
+        self.runtime_path = None
+        self.result_content = None
+        self.result_path = None
 
     def write_file(self, path, content):
         with open(path, mode="wb+") as file_handler:
@@ -60,6 +64,7 @@ class JobFile(object):
                 self.job_id,
                 self.name
             ])
+
     def save_runtime_file(self, content):
         """
         Args:
@@ -72,6 +77,8 @@ class JobFile(object):
             self.file_name()
         )
         self.write_file(path, content)
+        self.runtime_content = content
+        self.runtime_path = path
         return path
 
     def save_result_file(self, content):
@@ -86,6 +93,8 @@ class JobFile(object):
             self.file_name()
         )
         self.write_file(path, content)
+        self.result_content = content
+        self.result_path = path
         return path
 
 
@@ -250,49 +259,54 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
         Raises:
             ProcessorExecuteError
         """
+        VERSION='1'
 
         files = {
             'file': (result_xtf_file_name, xtf_content)
         }
-        if all_objects_accessible:
-            query_string = '?allObjectsAccessible=true'
-        else:
-            query_string = '?allObjectsAccessible=false'
-        try:
-            create_job_response = requests.post(
-                ilivalidator_service_url + query_string,
-                files=files
-            )
-            if create_job_response.status_code < 200 or create_job_response.status_code > 299:
-                return True, bytes(
-                    f'could not talk to ilivalidator HTTP code was {create_job_response.status_code}', 'utf-8'
-                )
-            status_url = create_job_response.headers["Operation-Location"]
+        create_job_response = requests.post(
+            f'{ilivalidator_service_url}/api/v{VERSION}/upload',
+            files=files
+        )
+
+        if create_job_response.status_code == 201:
+            # job was created successfully
+            job_status = create_job_response.json()
+            status_url = f'{ilivalidator_service_url}{job_status["statusUrl"]}'
             last_log = None
+
             while True:
                 status_response = requests.get(status_url)
-                body = json.loads(status_response.text)
+                body = status_response.json()
                 if last_log != body["status"]:
                     logging.info(body)
                     last_log = body["status"]
-                if body["status"] in ["FAILED", "SUCCEEDED"]:
-                    ili_log_path = body['logFileLocation']
+                if body["status"] in ["completedWithErrors", "completed"]:
+                    ili_log_path = body['logUrl']
                     logging.info(ili_log_path)
-                    response = requests.get(ili_log_path)
+                    response = requests.get(f'{ilivalidator_service_url}{ili_log_path}')
                     log_content = response.text
-                    # encoding = requests.utils.get_encoding_from_headers(response.headers)
-                    logging.info(log_content)
-                    # logging.info(encoding)
+                    # logging.info(log_content)
                     return "...validation failed" in log_content, bytes(log_content, 'utf-8')
-                elif body["status"] == "PROCESSING":
-                    time.sleep(float(status_response.headers["Retry-After"])/1000)
-                elif body["status"] == "ENQUEUED":
-                    time.sleep(sleep_time_ms/1000)
+                elif body["status"] in ["processing", "enqueued"]:
+                    time.sleep(sleep_time_ms / 1000)
                 else:
-                    raise AttributeError("unknown STATUS of ilivalidator service {}".format(body["status"]))
-        except Exception as e:
-            logging.error(e)
-            return True, bytes(str(e), 'utf-8')
+                    logging.error("unknown status")
+                    raise AttributeError(
+                        "unknown STATUS of ilivalidator service {}".format(body["status"])
+                    )
+        elif create_job_response.status_code == 400:
+            return True, bytes(
+                f'Some error happened: P code was {create_job_response.status_code}', 'utf-8'
+            )
+        elif create_job_response.status_code == 413:
+            return True, bytes(
+                f'File was too large. See details: P code was {create_job_response.status_code}', 'utf-8'
+            )
+        else:
+            return True, bytes(
+                f'could not talk to ilivalidator HTTP code was {create_job_response.status_code}', 'utf-8'
+            )
 
 
     @staticmethod
@@ -337,12 +351,11 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
         return result
 
     def create_rss_snippet(self, theme_code, model, target_basket_id, output_validation_failed):
-        status_string = "failed" if output_validation_failed else "succeeded"
-        published_string = "failed and was NOT published" if output_validation_failed else "was successful and is published now"
+        published_string = "failed and was NOT published" if output_validation_failed == JobStatus.failed.value else "was successful and is published now"
         return f"""
         <item>
           <guid isPermaLink="true">mgdm2oereb_results/{self.job_id}/index.html</guid>
-          <title>Transformation {status_string} (theme: {theme_code}, model: {model})</title>
+          <title>Transformation {output_validation_failed} (theme: {theme_code}, model: {model})</title>
           <description>The MGDM2OERB Trafo from MGDM {model} to OeREBKRM_V2_0 for {theme_code} (Basket ID: {target_basket_id}) {published_string}.</description>
           <link>mgdm2oereb_results/{self.job_id}/index.html</link>
           <pubDate>{utils.format_datetime(self.timestamp)}</pubDate>
@@ -357,7 +370,7 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
                 "target_basket_id": target_basket_id,
                 "model": model,
                 "time_stamp": self.timestamp.isoformat(),
-                "successful": not output_validation_failed
+                "successful": not output_validation_failed == JobStatus.failed.value
             },
             indent=4
         ), 'utf-8')
