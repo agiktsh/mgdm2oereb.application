@@ -16,7 +16,7 @@ services:
       - PYGEOAPI_OPENAPI
       - GUNICORN_CONFIG
       - MGDM2OEREB_TRAFO_CONFIG
-      - ILIVALIDATOR_SERVICE=http://ilivalidator-service:8080/rest/jobs
+      - ILIVALIDATOR_SERVICE=https://ilicheck.geo.sh.ch
       - MGDM2OEREB_DATA
       - FLASK_DEBUG=${MGDM2OEREB_SERVICE_FLASK_ENV}
     volumes:
@@ -24,33 +24,6 @@ services:
       - ./mgdm2oereb_service:/app
     ports:
       - "5000:5000"
-  # The service interface which offers transformation entry points based on pygeopi processing standards
-  mgdm2oereb-gui:
-    user: ${CURRENT_UID}:${CURRENT_GID}
-    build:
-      context: ./mgdm2oereb_frontend
-      target: dev
-    restart: unless-stopped
-    environment:
-      URL_SCHEME: "http"
-      LOG_LEVEL: "DEBUG"
-    volumes:
-      - ./mgdm2oereb_frontend:/app
-      - data:${MGDM2OEREB_DATA}:ro
-    ports:
-      - "8080:8080"
-    deploy:
-      replicas: 0
-  ilivalidator-service:
-    build:
-      context: ilivalidator_service
-      dockerfile: Dockerfile
-    environment:
-      TZ: Europe/Zurich
-    ports:
-      - 7000:8080
-      - 7001:8000
-    restart: unless-stopped
   rss-trigger:
     environment:
       - RSS_STORAGE_PATH

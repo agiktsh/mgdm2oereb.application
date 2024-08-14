@@ -1,198 +1,346 @@
 import os
 import subprocess
+from typing import Callable
+from dataclasses import dataclass, field
 from mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb import \
-    Mgdm2OerebTransformatorBase
-from pygeoapi.process.base import ProcessorExecuteError
+    Mgdm2OerebTransformatorBase, JobFile
 from mgdm2oereb_service import RESULTS_PATH
+from pygeoapi.util import JobStatus
+
+
+@dataclass
+class Parameters:
+    zip_file: str = field()
+    target_basket_id: str = field()
+    theme_code: str = field()
+    model_name: str = field()
+    catalog: str = field()
+    input_validation: bool = field()
+
+
+@dataclass
+class OereblexParameters(Parameters):
+    oereblex_host: str = field()
+    oereblex_canton: str = field()
+    dummy_office_name: str = field()
+    dummy_office_url: str = field()
+
+
+@dataclass
+class JobFiles:
+    input_zip_file: JobFile
+    input_xtf_file: JobFile
+    input_log_file: JobFile
+    output_log_file: JobFile
+    trafo_result_file: JobFile
+    rss_snippet_file: JobFile
+    json_snippet_file: JobFile
+    catalog_file: JobFile
+
+
+@dataclass
+class OereblexJobFiles(JobFiles):
+    oereblex_trafo_result_file: JobFile
+
+
+@dataclass
+class TaskOrder:
+    tasks: list[Callable[[Parameters | OereblexParameters, JobFiles | OereblexJobFiles, dict, str], dict]]
 
 
 class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
+    mimetype = 'text/json'
+    
+    def format_exception(self, e: Exception) -> str:
+        if hasattr(e, 'message'):
+            return str(e.message)
+        else:
+            return str(e)
 
-    def execute(self, data):
-        mimetype = 'text/json'
-        zip_file = data.get('zip_file', None)
-        target_basket_id = data.get('target_basket_id', None)
-        theme_code = data.get('theme_code', None)
-        model_name = data.get('model_name', None)
-        catalog = data.get('catalog', None)
+    def extract_parameters(self, data: dict) -> Parameters:
+        return Parameters(**data)
+
+    def check_params(self, data: dict) -> Parameters | OereblexParameters:
         input_validation = data.get('input_validation', False) in [True, 'true', 1, '1', 'True']
-        result = {
-            "theme_code": theme_code,
-            "target_basket_id": target_basket_id
-        }
-
-        if zip_file is None:
-            return mimetype, result
-            raise ProcessorExecuteError('Cannot process without a zip_file')
-        if theme_code is None:
-            raise ProcessorExecuteError('Cannot process without a theme_code')
-        if model_name is None:
-            raise ProcessorExecuteError('Cannot process without a model_name')
-        if catalog is None:
-            raise ProcessorExecuteError('Cannot process without a catalog')
+        data['input_validation'] = input_validation
+        params = self.extract_parameters(data)
         self.logger.info('All params are there. Starting with the process.')
-        input_zip_file = self.create_job_file(
-            self.zip_file_name,
-            theme_code,
-            target_basket_id
-        )
-        input_xtf_file = self.create_job_file(
-            self.input_xtf_file_name,
-            theme_code,
-            target_basket_id
-        )
-        input_log_file = self.create_job_file(
-            self.input_log_file_name,
-            theme_code,
-            target_basket_id
-        )
-        output_log_file = self.create_job_file(
-            self.output_log_file_name,
-            theme_code,
-            target_basket_id
-        )
-        trafo_result_file = self.create_job_file(
-            self.result_xtf_file_name,
-            theme_code,
-            target_basket_id
-        )
-        rss_snippet_file = self.create_job_file(
-            self.rss_snippet_file_name,
-            theme_code,
-            target_basket_id
+        return params
+
+    def prepare_job_files(self, parameters: Parameters) -> JobFiles:
+        return JobFiles(
+            input_zip_file=self.create_job_file(
+                self.zip_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            input_xtf_file=self.create_job_file(
+                self.input_xtf_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            input_log_file=self.create_job_file(
+                self.input_log_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            output_log_file=self.create_job_file(
+                self.output_log_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            trafo_result_file=self.create_job_file(
+                self.result_xtf_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            rss_snippet_file=self.create_job_file(
+                self.rss_snippet_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            json_snippet_file=self.create_job_file(
+                self.json_snippet_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            catalog_file=self.create_job_file(
+                self.catalog_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            )
         )
 
-        json_snippet_file = self.create_job_file(
-            self.json_snippet_file_name,
-            theme_code,
-            target_basket_id
+    def obtain_task_order(self):
+        return TaskOrder(
+            tasks=[
+                self.task_handle_input_zip,
+                self.task_handle_input_validation,
+                self.task_handle_catalogue,
+                self.task_handle_trafo,
+                self.task_handle_output_validation,
+                self.task_handle_rss_snippet,
+                self.task_handle_json_snippet
+            ]
         )
 
-        input_zip_file_path = input_zip_file.save_runtime_file(
-            self.decode_input_file(zip_file)
+    def task_handle_input_zip(
+            self,
+            parameters: Parameters | OereblexParameters,
+            job_files: JobFiles | OereblexJobFiles,
+            result: dict,
+            task_name: str
+    ) -> dict:
+        input_zip_file_path = job_files.input_zip_file.save_runtime_file(
+            self.decode_input_file(parameters.zip_file)
         )
         try:
             input_xtf_content = self.unzip_input_file(
                 input_zip_file_path,
                 self.job_path
             )
+            self.logger.info('Input-Zip extracted')
         except Exception as e:
-            result.update({'error': e})
-            return mimetype, result
+            return {'status': JobStatus.failed.value, 'msg': self.format_exception(e), 'task': task_name, 'step': 'unzip'}
         try:
-            input_xtf_file_path = input_xtf_file.save_runtime_file(
+            job_files.input_xtf_file.save_runtime_file(
                 input_xtf_content
             )
-            input_xtf_file.save_result_file(input_xtf_content)
-            result.update({"input_xtf": f"/{RESULTS_PATH}/{input_xtf_file.file_name()}"})
+            job_files.input_xtf_file.save_result_file(input_xtf_content)
+            self.logger.info('Input-XTF Created')
+            return {
+                f"{task_name}_status": JobStatus.successful.value,
+                "input_xtf": f"/{RESULTS_PATH}/{job_files.input_xtf_file.file_name()}"
+            }
         except Exception as e:
-            result.update({'error': e})
-            return mimetype, result
-        if input_validation:
-            input_validation_failed, input_validation_result = self.validate(
-                input_xtf_content,
-                self.ilivalidator_service_url,
-                self.result_xtf_file_name,
-                all_objects_accessible=False
-            )
-            input_log_file_path = input_log_file.save_runtime_file(
-                input_validation_result
-            )
-            input_log_file.save_result_file(input_validation_result)
-            result.update({"input_validation_log": f"/{RESULTS_PATH}/{input_log_file.file_name()}"})
-            if input_validation_failed:
-                result.update({'error': 'Validation of input file failed.'})
-                return mimetype, result
+            return {'status': JobStatus.failed.value, 'msg': self.format_exception(e), 'task': task_name, 'step': 'save input xtf'}
 
-        xsl_trafo_path = os.path.join(
-            self.mgdm2oereb_xsl_path,
-            '{}.trafo.xsl'.format(model_name)
-        )
+    def task_handle_input_validation(
+            self,
+            parameters: Parameters | OereblexParameters,
+            job_files: JobFiles | OereblexJobFiles,
+            result: dict,
+            task_name: str
+    ) -> dict:
+        if parameters.input_validation:
+            if job_files.input_xtf_file.result_content:
+                input_validation_failed, input_validation_result = self.validate(
+                    job_files.input_xtf_file.result_content,
+                    self.ilivalidator_service_url,
+                    self.result_xtf_file_name,
+                    all_objects_accessible=False
+                )
+                job_files.input_log_file.save_runtime_file(
+                    input_validation_result
+                )
+                job_files.input_log_file.save_result_file(input_validation_result)
+                self.logger.info('Input-Validation done')
+                if input_validation_failed:
+                    return {'status': JobStatus.failed.value, 'msg': 'Validation of input file failed.', 'task': task_name}
+                return {
+                    f"{task_name}_status": JobStatus.successful.value,
+                    "input_validation_log": f"/{RESULTS_PATH}/{job_files.input_log_file.file_name()}"
+                }
+            else:
+                return {'status': JobStatus.failed.value, 'msg': 'No XTF Content at runtime for some reason.', 'task': task_name}
+        else:
+            return {}
+
+    def task_handle_catalogue(
+            self,
+            parameters: Parameters | OereblexParameters,
+            job_files: JobFiles | OereblexJobFiles,
+            result: dict,
+            task_name: str
+    ) -> dict:
         try:
-            catalog_content = self.download_catalogue(catalog)
-            catalog_file = self.create_job_file(
-                self.catalog_file_name,
-                theme_code,
-                target_basket_id
-            )
-            catalog_file_path = catalog_file.save_runtime_file(
+            catalog_content = self.download_catalogue(parameters.catalog)
+            job_files.catalog_file.save_runtime_file(
                 catalog_content
             )
-            catalog_file.save_result_file(catalog_content)
-            result.update({"used_catalog": f"/{RESULTS_PATH}/{catalog_file.file_name()}"})
+            job_files.catalog_file.save_result_file(catalog_content)
+            self.logger.info('Catalogue created')
+            return {
+                f"{task_name}_status": JobStatus.successful.value,
+                "used_catalog": f"/{RESULTS_PATH}/{job_files.catalog_file.file_name()}"
+            }
         except Exception as e:
-            result.update({'error': e})
-            return mimetype, result
+            return {'status': JobStatus.failed.value, 'msg': self.format_exception(e), 'task': task_name}
+
+    def task_handle_trafo(
+            self,
+            parameters: Parameters | OereblexParameters,
+            job_files: JobFiles | OereblexJobFiles,
+            result: dict,
+            task_name: str
+    ) -> dict:
         trafo_params = {
-            "catalog": catalog_file_path,
-            "theme_code": theme_code,
-            "model": model_name,
-            "target_basket_id": target_basket_id,
+            "catalog": job_files.catalog_file.result_path,
+            "theme_code": parameters.theme_code,
+            "model": parameters.model_name,
+            "target_basket_id": parameters.target_basket_id,
             'xsl_path': self.mgdm2oereb_xsl_path
         }
         try:
+            xsl_trafo_path = os.path.join(
+                self.mgdm2oereb_xsl_path,
+                '{}.trafo.xsl'.format(parameters.model_name)
+            )
             trafo_result_content = self.transform(
                 xsl_trafo_path,
-                input_xtf_file_path,
+                job_files.input_xtf_file.result_path,
                 trafo_params
             )
-            trafo_result_file_path = trafo_result_file.save_runtime_file(
+            job_files.trafo_result_file.save_runtime_file(
                 trafo_result_content
             )
-            trafo_result_file.save_result_file(trafo_result_content)
-            result.update({"transformation_result": f"/{RESULTS_PATH}/{trafo_result_file.file_name()}"})
+            job_files.trafo_result_file.save_result_file(trafo_result_content)
+            return {
+                f"{task_name}_status": JobStatus.successful.value,
+                "transformation_result": f"/{RESULTS_PATH}/{job_files.trafo_result_file.file_name()}"
+            }
         except Exception as e:
-            result.update({'error': e})
-            return mimetype, result
+            return {'status': JobStatus.failed.value, 'msg': self.format_exception(e), 'task': task_name}
 
+    def task_handle_output_validation(
+            self,
+            parameters: Parameters | OereblexParameters,
+            job_files: JobFiles | OereblexJobFiles,
+            result: dict,
+            task_name: str
+    ) -> dict:
         output_validation_failed, output_validation_result = self.validate(
-            trafo_result_content,
+            job_files.trafo_result_file.result_content,
             self.ilivalidator_service_url,
             self.result_xtf_file_name,
             all_objects_accessible=True
         )
-        output_log_file_path = output_log_file.save_runtime_file(
+        job_files.output_log_file.save_runtime_file(
             output_validation_result
         )
-        output_log_file.save_result_file(output_validation_result)
-        result.update({"output_validation_log": f"/{RESULTS_PATH}/{output_log_file.file_name()}"})
+        job_files.output_log_file.save_result_file(output_validation_result)
         if output_validation_failed:
-            result.update({'error': 'Validation of output file failed.'})
+            return {'status': JobStatus.failed.value, 'msg': 'Validation of output file failed.', 'task': task_name}
+        return {
+            f"{task_name}_status": JobStatus.successful.value,
+            "output_validation_log": f"/{RESULTS_PATH}/{job_files.output_log_file.file_name()}"
+        }
 
+    def task_handle_rss_snippet(
+            self,
+            parameters: Parameters | OereblexParameters,
+            job_files: JobFiles | OereblexJobFiles,
+            result: dict,
+            task_name: str
+    ) -> dict:
         rss_snippet_content = self.create_rss_snippet(
-            theme_code,
-            model_name,
-            target_basket_id,
-            output_validation_failed
+            parameters.theme_code,
+            parameters.model_name,
+            parameters.target_basket_id,
+            result[f"{self.task_handle_output_validation.__name__}_status"]
         )
-        rss_snippet_file_path = rss_snippet_file.save_runtime_file(
+        job_files.rss_snippet_file.save_runtime_file(
             rss_snippet_content
         )
+        job_files.rss_snippet_file.save_result_file(rss_snippet_content)
+        return {
+            f"{task_name}_status": JobStatus.successful.value,
+            "rss_snippet": f"/{RESULTS_PATH}/{job_files.rss_snippet_file.file_name()}"
+        }
 
+    def task_handle_json_snippet(
+            self,
+            parameters: Parameters | OereblexParameters,
+            job_files: JobFiles | OereblexJobFiles,
+            result: dict,
+            task_name: str
+    ) -> dict:
         json_snippet_content = self.create_json_snippet(
-            theme_code,
-            model_name,
-            target_basket_id,
-            output_validation_failed
+            parameters.theme_code,
+            parameters.model_name,
+            parameters.target_basket_id,
+            result[f"{self.task_handle_output_validation.__name__}_status"]
         )
-        json_snippet_file_path = json_snippet_file.save_runtime_file(
+        job_files.json_snippet_file.save_runtime_file(
             json_snippet_content
         )
+        job_files.json_snippet_file.save_result_file(json_snippet_content)
+        return {
+            f"{task_name}_status": JobStatus.successful.value,
+            "rss_snippet": f"/{RESULTS_PATH}/{job_files.json_snippet_file.file_name()}"
+        }
 
-        # save files to be available for web access (aka publishing)
+    def execute(self, data):
+        parameters = self.check_params(data)
 
-        rss_snippet_file.save_result_file(rss_snippet_content)
-        json_snippet_file.save_result_file(json_snippet_content)
+        result = {
+            "theme_code": parameters.theme_code,
+            "target_basket_id": parameters.target_basket_id
+        }
+        job_files = self.prepare_job_files(parameters)
+        task_order = self.obtain_task_order()
+        for task in task_order.tasks:
+            task_result = task(
+                parameters,
+                job_files,
+                result.copy(),
+                task.__name__
+            )
+            if task_result.get('status', False):
+                if task_result['status'] == JobStatus.failed.value:
+                    task_result['task'] = task.__name__
+                    return self.mimetype, task_result
+            result.update(task_result)
 
         result.update({
-            "rss_snippet": f"/{RESULTS_PATH}/{rss_snippet_file.file_name()}",
-            "json_snippet": f"/{RESULTS_PATH}/{json_snippet_file.file_name()}"
+            "rss_snippet": f"/{RESULTS_PATH}/{job_files.rss_snippet_file.file_name()}",
+            "json_snippet": f"/{RESULTS_PATH}/{job_files.json_snippet_file.file_name()}"
         })
         self.logger.info(result)
-        return mimetype, result
+        return self.mimetype, result
 
 
-class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
+class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformator):
 
     # TODO: Implement switch "input_validation": true as parameter like it is implemented in the non oereblex
     # trafo
@@ -213,199 +361,141 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformatorBase):
             os.environ.get('MGDM2OEREB_OEREBLEX_TRAFO_PY', 'oereblex.download.py')
         )
 
-    def execute(self, data):
-        mimetype = 'text/json'
-        zip_file = data.get('zip_file', None)
-        theme_code = data.get('theme_code', None)
-        model_name = data.get('model_name', None)
-        catalog = data.get('catalog', None)
-        oereblex_host = data.get('oereblex_host', None)
-        oereblex_canton = data.get('oereblex_canton', None)
-        dummy_office_name = data.get('dummy_office_name', None)
-        dummy_office_url = data.get('dummy_office_url', None)
-        target_basket_id = data.get('target_basket_id', None)
+    def extract_parameters(self, data: dict) -> OereblexParameters:
+        return OereblexParameters(**data)
 
-        if zip_file is None:
-            raise ProcessorExecuteError('Cannot process without a zip_file')
-        if theme_code is None:
-            raise ProcessorExecuteError('Cannot process without a theme_code')
-        if model_name is None:
-            raise ProcessorExecuteError('Cannot process without a model_name')
-        if catalog is None:
-            raise ProcessorExecuteError('Cannot process without a catalog')
-        if oereblex_host is None:
-            raise ProcessorExecuteError('Cannot process without a oereblex_host')
-        if oereblex_canton is None:
-            raise ProcessorExecuteError('Cannot process without a oereblex_canton')
-        if dummy_office_name is None:
-            raise ProcessorExecuteError('Cannot process without a dummy_office_name')
-        if dummy_office_url is None:
-            raise ProcessorExecuteError('Cannot process without a dummy_office_url')
-        self.logger.info('All params are there. Starting with the process.')
-        input_zip_file = self.create_job_file(
-            self.zip_file_name,
-            theme_code,
-            target_basket_id
-        )
-        input_xtf_file = self.create_job_file(
-            self.input_xtf_file_name,
-            theme_code,
-            target_basket_id
-        )
-        input_log_file = self.create_job_file(
-            self.input_log_file_name,
-            theme_code,
-            target_basket_id
-        )
-        output_log_file = self.create_job_file(
-            self.output_log_file_name,
-            theme_code,
-            target_basket_id
-        )
-        oereblex_trafo_result_file = self.create_job_file(
-            self.result_oereblex_xml_file_name,
-            theme_code,
-            target_basket_id
-        )
-        trafo_result_file = self.create_job_file(
-            self.result_xtf_file_name,
-            theme_code,
-            target_basket_id
-        )
-        rss_snippet_file = self.create_job_file(
-            self.rss_snippet_file_name,
-            theme_code,
-            target_basket_id
+    def prepare_job_files(self, parameters: OereblexParameters) -> OereblexJobFiles:
+        return OereblexJobFiles(
+            input_zip_file=self.create_job_file(
+                self.zip_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            input_xtf_file=self.create_job_file(
+                self.input_xtf_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            input_log_file=self.create_job_file(
+                self.input_log_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            output_log_file=self.create_job_file(
+                self.output_log_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            trafo_result_file=self.create_job_file(
+                self.result_xtf_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            rss_snippet_file=self.create_job_file(
+                self.rss_snippet_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            json_snippet_file=self.create_job_file(
+                self.json_snippet_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            catalog_file=self.create_job_file(
+                self.catalog_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            ),
+            oereblex_trafo_result_file=self.create_job_file(
+                self.result_oereblex_xml_file_name,
+                parameters.theme_code,
+                parameters.target_basket_id
+            )
         )
 
-        json_snippet_file = self.create_job_file(
-            self.json_snippet_file_name,
-            theme_code,
-            target_basket_id
+    def obtain_task_order(self):
+        return TaskOrder(
+            tasks=[
+                self.task_handle_input_zip,
+                self.task_handle_input_validation,
+                self.task_handle_oereblex,
+                self.task_handle_catalogue,
+                self.task_handle_trafo,
+                self.task_handle_output_validation,
+                self.task_handle_rss_snippet,
+                self.task_handle_json_snippet
+            ]
         )
 
-        input_zip_file_path = input_zip_file.save_runtime_file(
-            self.decode_input_file(zip_file)
-        )
-        input_xtf_content = self.unzip_input_file(
-            input_zip_file_path,
-            self.job_path
-        )
-        input_xtf_file_path = input_xtf_file.save_runtime_file(
-            input_xtf_content
-        )
-        # TODO: handle validation status correctly
-        input_validation_result = self.validate(
-            input_xtf_content,
-            self.ilivalidator_service_url,
-            self.result_xtf_file_name,
-            all_objects_accessible=False
-        )
+    def task_handle_oereblex(
+            self,
+            parameters: Parameters | OereblexParameters,
+            job_files: JobFiles | OereblexJobFiles,
+            result: dict,
+            task_name: str
+    ) -> dict:
+        try:
+            mgdm2oereb_oereblex_geolink_list_path = os.path.join(
+                self.mgdm2oereb_xsl_path,
+                "{}.oereblex.geolink_list.xsl".format(parameters.model_name)
+            )
 
-        input_log_file_path = input_log_file.save_runtime_file(
-            input_validation_result
-        )
-        xsl_trafo_path = os.path.join(
-            self.mgdm2oereb_xsl_path,
-            '{}.trafo.xsl'.format(model_name)
-        )
-        mgdm2oereb_oereblex_geolink_list_path = os.path.join(
-            self.mgdm2oereb_xsl_path,
-            "{}.oereblex.geolink_list.xsl".format(model_name)
-        )
+            oereblex_trafo_result = self.run_oereblex_trafo(
+                mgdm2oereb_oereblex_geolink_list_path,
+                job_files.input_xtf_file.result_path,
+                self.result_oereblex_xml_path,
+                parameters.oereblex_host,
+                parameters.dummy_office_name,
+                parameters.dummy_office_url,
+                self.logger
+            )
 
-        oereblex_trafo_result = self.run_oereblex_trafo(
-            mgdm2oereb_oereblex_geolink_list_path,
-            input_xtf_file_path,
-            self.result_oereblex_xml_path,
-            oereblex_host,
-            dummy_office_name,
-            dummy_office_url,
-            self.logger
-        )
+            job_files.oereblex_trafo_result_file.save_runtime_file(
+                oereblex_trafo_result
+            )
+            return {
+                f"{task_name}_status": JobStatus.successful.value,
+                "oereblex_trafo_result": f"/{RESULTS_PATH}/{job_files.oereblex_trafo_result_file.file_name()}"
+            }
+        except Exception as e:
+            return {'status': JobStatus.failed.value, 'msg': self.format_exception(e), 'task': task_name}
 
-        oereblex_trafo_result_file_path = oereblex_trafo_result_file.save_runtime_file(
-            oereblex_trafo_result
-        )
-        catalog_content = self.download_catalogue(catalog)
-        catalog_file = self.create_job_file(
-            self.catalog_file_name,
-            theme_code,
-            target_basket_id
-        )
-        catalog_file_path = catalog_file.save_runtime_file(
-            catalog_content
-        )
-
-        trafo_params = {
-            "catalog": catalog_file_path,
-            "theme_code": theme_code,
-            "model": model_name,
-            "oereblex_output": oereblex_trafo_result_file_path,
-            "oereblex_host": oereblex_host,
-            "target_basket_id": target_basket_id,
-            'xsl_path': self.mgdm2oereb_xsl_path
-        }
-        trafo_result_content = self.transform(
-            xsl_trafo_path,
-            input_xtf_file_path,
-            trafo_params
-        )
-
-        trafo_result_file_path = trafo_result_file.save_runtime_file(
-            trafo_result_content
-        )
-        # TODO: handle validation status correctly
-        output_validation_result = self.validate(
-            trafo_result_content,
-            self.ilivalidator_service_url,
-            self.result_xtf_file_name,
-            all_objects_accessible=True
-        )
-        output_log_file_path = output_log_file.save_runtime_file(
-            output_validation_result
-        )
-
-        rss_snippet_content = self.create_rss_snippet(
-            theme_code,
-            model_name,
-            target_basket_id
-        )
-
-        rss_snippet_file_path = rss_snippet_file.save_runtime_file(
-            rss_snippet_content
-        )
-
-        json_snippet_content = self.create_json_snippet(
-            theme_code,
-            model_name,
-            target_basket_id
-        )
-        json_snippet_file_path = json_snippet_file.save_runtime_file(
-            json_snippet_content
-        )
-
-        # save files to be available for web access (aka publishing)
-        trafo_result_file.save_result_file(trafo_result_content)
-        input_log_file.save_result_file(input_validation_result)
-        output_log_file.save_result_file(output_validation_result)
-        oereblex_trafo_result_file.save_result_file(oereblex_trafo_result)
-        rss_snippet_file.save_result_file(rss_snippet_content)
-        catalog_file.save_result_file(catalog_content)
-
-        result = {
-            "theme_code": theme_code,
-            "target_basket_id": target_basket_id,
-            "transformation_result": f"/{RESULTS_PATH}/{trafo_result_file.file_name()}",
-            "input_validation_log": f"/{RESULTS_PATH}/{input_log_file.file_name()}",
-            "used_catalog": f"/{RESULTS_PATH}/{catalog_file.file_name()}",
-            "output_validation_log": f"/{RESULTS_PATH}/{output_log_file.file_name()}",
-            "oereblex_trafo_result": f"/{RESULTS_PATH}/{oereblex_trafo_result_file.file_name()}",
-            "rss_snippet": f"/{RESULTS_PATH}/{rss_snippet_file.file_name()}",
-            "json_snippet": f"/{RESULTS_PATH}/{json_snippet_file.file_name()}"
-        }
-        self.logger.info(result)
-        return mimetype, result
+    def task_handle_trafo(
+            self,
+            parameters: OereblexParameters,
+            job_files: OereblexJobFiles,
+            result: dict,
+            task_name: str
+    ) -> dict:
+        try:
+            trafo_params = {
+                "catalog": job_files.catalog_file.result_path,
+                "theme_code": parameters.theme_code,
+                "model": parameters.model_name,
+                "oereblex_output": job_files.oereblex_trafo_result_file.result_path,
+                "oereblex_host": parameters.oereblex_host,
+                "target_basket_id": parameters.target_basket_id,
+                'xsl_path': self.mgdm2oereb_xsl_path
+            }
+            xsl_trafo_path = os.path.join(
+                self.mgdm2oereb_xsl_path,
+                '{}.trafo.xsl'.format(parameters.model_name)
+            )
+            trafo_result_content = self.transform(
+                xsl_trafo_path,
+                job_files.input_xtf_file.result_path,
+                trafo_params
+            )
+            job_files.trafo_result_file.save_runtime_file(
+                trafo_result_content
+            )
+            job_files.trafo_result_file.save_result_file(trafo_result_content)
+            return {
+                f"{task_name}_status": JobStatus.successful.value,
+                "transformation_result": f"/{RESULTS_PATH}/{job_files.trafo_result_file.file_name()}"
+            }
+        except Exception as e:
+            return {'status': JobStatus.failed.value, 'msg': self.format_exception(e), 'task': task_name}
 
     def run_oereblex_trafo(self, mgdm2oereb_oereblex_geolink_list_path, xtf_path, result_oereblex_xml_path,
                            oereblex_host, dummy_office_name, dummy_office_url, logger):
