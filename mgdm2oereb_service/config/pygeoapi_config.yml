@@ -13,9 +13,9 @@ server:
     # cors: true
     pretty_print: true
     limit: 10
-    # templates:
+    templates:
       # path: /path/to/Jinja2/templates
-      # static: /path/to/static/folder # css/js/img
+      static: /pygeoapi/pygeoapi/static/ # css/js/img
     map:
         url: https://tile.openstreetmap.org/{z}/{x}/{y}.png
         attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
