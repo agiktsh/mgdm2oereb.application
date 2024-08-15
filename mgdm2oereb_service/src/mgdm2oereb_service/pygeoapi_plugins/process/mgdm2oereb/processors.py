@@ -141,7 +141,12 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
             )
             self.logger.info('Input-Zip extracted')
         except Exception as e:
-            return {'status': JobStatus.failed.value, 'msg': self.format_exception(e), 'task': task_name, 'step': 'unzip'}
+            return {
+                'status': JobStatus.failed.value,
+                'msg': self.format_exception(e),
+                'task': task_name,
+                'step': 'unzip'
+            }
         try:
             job_files.input_xtf_file.save_runtime_file(
                 input_xtf_content
@@ -153,7 +158,12 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
                 "input_xtf": f"/{RESULTS_PATH}/{job_files.input_xtf_file.file_name()}"
             }
         except Exception as e:
-            return {'status': JobStatus.failed.value, 'msg': self.format_exception(e), 'task': task_name, 'step': 'save input xtf'}
+            return {
+                'status': JobStatus.failed.value,
+                'msg': self.format_exception(e),
+                'task': task_name,
+                'step': 'save input xtf'
+            }
 
     def task_handle_input_validation(
             self,
@@ -176,13 +186,21 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
                 job_files.input_log_file.save_result_file(input_validation_result)
                 self.logger.info('Input-Validation done')
                 if input_validation_failed:
-                    return {'status': JobStatus.failed.value, 'msg': 'Validation of input file failed.', 'task': task_name}
+                    return {
+                        'status': JobStatus.failed.value,
+                        'msg': 'Validation of input file failed.',
+                        'task': task_name
+                    }
                 return {
                     f"{task_name}_status": JobStatus.successful.value,
                     "input_validation_log": f"/{RESULTS_PATH}/{job_files.input_log_file.file_name()}"
                 }
             else:
-                return {'status': JobStatus.failed.value, 'msg': 'No XTF Content at runtime for some reason.', 'task': task_name}
+                return {
+                    'status': JobStatus.failed.value,
+                    'msg': 'No XTF Content at runtime for some reason.',
+                    'task': task_name
+                }
         else:
             return {}
 
@@ -205,7 +223,11 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
                 "used_catalog": f"/{RESULTS_PATH}/{job_files.catalog_file.file_name()}"
             }
         except Exception as e:
-            return {'status': JobStatus.failed.value, 'msg': self.format_exception(e), 'task': task_name}
+            return {
+                'status': JobStatus.failed.value,
+                'msg': self.format_exception(e),
+                'task': task_name
+            }
 
     def task_handle_trafo(
             self,
@@ -240,7 +262,11 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
                 "transformation_result": f"/{RESULTS_PATH}/{job_files.trafo_result_file.file_name()}"
             }
         except Exception as e:
-            return {'status': JobStatus.failed.value, 'msg': self.format_exception(e), 'task': task_name}
+            return {
+                'status': JobStatus.failed.value,
+                'msg': self.format_exception(e),
+                'task': task_name
+            }
 
     def task_handle_output_validation(
             self,
@@ -260,7 +286,11 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         )
         job_files.output_log_file.save_result_file(output_validation_result)
         if output_validation_failed:
-            return {'status': JobStatus.failed.value, 'msg': 'Validation of output file failed.', 'task': task_name}
+            return {
+                'status': JobStatus.failed.value,
+                'msg': 'Validation of output file failed.',
+                'task': task_name
+            }
         return {
             f"{task_name}_status": JobStatus.successful.value,
             "output_validation_log": f"/{RESULTS_PATH}/{job_files.output_log_file.file_name()}"
@@ -311,13 +341,31 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         }
 
     def execute(self, data):
-        parameters = self.check_params(data)
+        result = {}
+        try:
+            parameters = self.check_params(data)
+            result.update({
+                "theme_code": parameters.theme_code,
+                "target_basket_id": parameters.target_basket_id
+            })
+        except Exception as e:
+            result.update({
+                'status': JobStatus.failed.value,
+                'msg': f'Error in passed Params: {e}',
+                'task': 'checking parameters'
+            })
+            return self.mimetype, result
 
-        result = {
-            "theme_code": parameters.theme_code,
-            "target_basket_id": parameters.target_basket_id
-        }
-        job_files = self.prepare_job_files(parameters)
+        try:
+            job_files = self.prepare_job_files(parameters)
+        except Exception as e:
+            result.update({
+                'status': JobStatus.failed.value,
+                'msg': f'Error while preparing Job Files: {e}',
+                'task': 'preparing job files'
+            })
+            return self.mimetype, result
+
         task_order = self.obtain_task_order()
         for task in task_order.tasks:
             task_result = task(
@@ -326,11 +374,12 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
                 result.copy(),
                 task.__name__
             )
+            result.update(task_result)
             if task_result.get('status', False):
                 if task_result['status'] == JobStatus.failed.value:
-                    task_result['task'] = task.__name__
-                    return self.mimetype, task_result
-            result.update(task_result)
+                    # we break the loop and stop since a task in the row was failing.
+                    return self.mimetype, result
+
 
         result.update({
             "rss_snippet": f"/{RESULTS_PATH}/{job_files.rss_snippet_file.file_name()}",

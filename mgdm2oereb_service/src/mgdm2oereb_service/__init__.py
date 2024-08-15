@@ -2,11 +2,11 @@ import json
 
 import os
 import glob
+from mgdm2oereb_service.flask_app import BLUEPRINT
+from mgdm2oereb_service.flask_app import STATIC_FOLDER
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 from flask import Flask, send_file, render_template, request, Response
-from pygeoapi.flask_app import BLUEPRINT
-from pygeoapi.flask_app import STATIC_FOLDER
 from urllib.parse import urlparse
 
 parser = etree.XMLParser(remove_blank_text=True)
@@ -17,6 +17,7 @@ RESULTS_PATH = "mgdm2oereb_results"
 app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='/static')
 
 app.register_blueprint(BLUEPRINT, url_prefix='/oapi')
+
 
 
 def upgrade_url_to_https(url):
