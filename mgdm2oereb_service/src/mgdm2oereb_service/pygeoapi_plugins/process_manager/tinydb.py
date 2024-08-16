@@ -36,7 +36,6 @@ class CustomTinyDBManager(TinyDBManager):
             return (None,)
         with io.open(location, 'r', encoding='utf-8') as filehandler:
             result = filehandler.read()
-        logger.error(result)
         return mimetype, result
 
     def _execute_handler_sync(self, p: BaseProcessor, job_id: str,
