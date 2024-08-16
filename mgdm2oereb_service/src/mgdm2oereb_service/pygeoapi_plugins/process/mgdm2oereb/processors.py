@@ -48,7 +48,7 @@ class TaskOrder:
 
 
 class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
-    mimetype = 'text/json'
+    mimetype = 'application/json'
     
     def format_exception(self, e: Exception) -> str:
         if hasattr(e, 'message'):
@@ -380,11 +380,6 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
                     # we break the loop and stop since a task in the row was failing.
                     return self.mimetype, result
 
-
-        result.update({
-            "rss_snippet": f"/{self.absolute_result_dir}/{job_files.rss_snippet_file.file_name()}",
-            "json_snippet": f"/{self.absolute_result_dir}/{job_files.json_snippet_file.file_name()}"
-        })
         self.logger.info(result)
         return self.mimetype, result
 
