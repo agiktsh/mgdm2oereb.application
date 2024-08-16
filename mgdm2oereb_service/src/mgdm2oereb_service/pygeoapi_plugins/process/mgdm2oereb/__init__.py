@@ -107,6 +107,8 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
         :param processor_def: provider definition
         :returns: mgdm2oereb_service.process.Mgdm2OerebTransformator
         """
+        from mgdm2oereb_service.app import RESULTS_PATH
+        self.absolute_result_dir = RESULTS_PATH
         with open(os.environ.get('MGDM2OEREB_TRAFO_CONFIG'), "r") as stream:
             try:
                 self.configuration = yaml.safe_load(stream)[self.__class__.__name__]

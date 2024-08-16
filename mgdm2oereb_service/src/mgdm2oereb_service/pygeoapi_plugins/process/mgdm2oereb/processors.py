@@ -4,7 +4,6 @@ from typing import Callable
 from dataclasses import dataclass, field
 from mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb import \
     Mgdm2OerebTransformatorBase, JobFile
-from mgdm2oereb_service import RESULTS_PATH
 from pygeoapi.util import JobStatus
 
 
@@ -155,7 +154,7 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
             self.logger.info('Input-XTF Created')
             return {
                 f"{task_name}_status": JobStatus.successful.value,
-                "input_xtf": f"/{RESULTS_PATH}/{job_files.input_xtf_file.file_name()}"
+                "input_xtf": f"/{self.absolute_result_dir}/{job_files.input_xtf_file.file_name()}"
             }
         except Exception as e:
             return {
@@ -193,7 +192,7 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
                     }
                 return {
                     f"{task_name}_status": JobStatus.successful.value,
-                    "input_validation_log": f"/{RESULTS_PATH}/{job_files.input_log_file.file_name()}"
+                    "input_validation_log": f"/{self.absolute_result_dir}/{job_files.input_log_file.file_name()}"
                 }
             else:
                 return {
@@ -220,7 +219,7 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
             self.logger.info('Catalogue created')
             return {
                 f"{task_name}_status": JobStatus.successful.value,
-                "used_catalog": f"/{RESULTS_PATH}/{job_files.catalog_file.file_name()}"
+                "used_catalog": f"/{self.absolute_result_dir}/{job_files.catalog_file.file_name()}"
             }
         except Exception as e:
             return {
@@ -259,7 +258,7 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
             job_files.trafo_result_file.save_result_file(trafo_result_content)
             return {
                 f"{task_name}_status": JobStatus.successful.value,
-                "transformation_result": f"/{RESULTS_PATH}/{job_files.trafo_result_file.file_name()}"
+                "transformation_result": f"/{self.absolute_result_dir}/{job_files.trafo_result_file.file_name()}"
             }
         except Exception as e:
             return {
@@ -293,7 +292,7 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
             }
         return {
             f"{task_name}_status": JobStatus.successful.value,
-            "output_validation_log": f"/{RESULTS_PATH}/{job_files.output_log_file.file_name()}"
+            "output_validation_log": f"/{self.absolute_result_dir}/{job_files.output_log_file.file_name()}"
         }
 
     def task_handle_rss_snippet(
@@ -315,7 +314,7 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         job_files.rss_snippet_file.save_result_file(rss_snippet_content)
         return {
             f"{task_name}_status": JobStatus.successful.value,
-            "rss_snippet": f"/{RESULTS_PATH}/{job_files.rss_snippet_file.file_name()}"
+            "rss_snippet": f"/{self.absolute_result_dir}/{job_files.rss_snippet_file.file_name()}"
         }
 
     def task_handle_json_snippet(
@@ -337,7 +336,7 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
         job_files.json_snippet_file.save_result_file(json_snippet_content)
         return {
             f"{task_name}_status": JobStatus.successful.value,
-            "rss_snippet": f"/{RESULTS_PATH}/{job_files.json_snippet_file.file_name()}"
+            "rss_snippet": f"/{self.absolute_result_dir}/{job_files.json_snippet_file.file_name()}"
         }
 
     def execute(self, data):
@@ -382,8 +381,8 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
 
 
         result.update({
-            "rss_snippet": f"/{RESULTS_PATH}/{job_files.rss_snippet_file.file_name()}",
-            "json_snippet": f"/{RESULTS_PATH}/{job_files.json_snippet_file.file_name()}"
+            "rss_snippet": f"/{self.absolute_result_dir}/{job_files.rss_snippet_file.file_name()}",
+            "json_snippet": f"/{self.absolute_result_dir}/{job_files.json_snippet_file.file_name()}"
         })
         self.logger.info(result)
         return self.mimetype, result
@@ -504,7 +503,7 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformator):
             )
             return {
                 f"{task_name}_status": JobStatus.successful.value,
-                "oereblex_trafo_result": f"/{RESULTS_PATH}/{job_files.oereblex_trafo_result_file.file_name()}"
+                "oereblex_trafo_result": f"/{self.absolute_result_dir}/{job_files.oereblex_trafo_result_file.file_name()}"
             }
         except Exception as e:
             return {'status': JobStatus.failed.value, 'msg': self.format_exception(e), 'task': task_name}
@@ -541,7 +540,7 @@ class Mgdm2OerebTransformatorOereblex(Mgdm2OerebTransformator):
             job_files.trafo_result_file.save_result_file(trafo_result_content)
             return {
                 f"{task_name}_status": JobStatus.successful.value,
-                "transformation_result": f"/{RESULTS_PATH}/{job_files.trafo_result_file.file_name()}"
+                "transformation_result": f"/{self.absolute_result_dir}/{job_files.trafo_result_file.file_name()}"
             }
         except Exception as e:
             return {'status': JobStatus.failed.value, 'msg': self.format_exception(e), 'task': task_name}
