@@ -49,6 +49,8 @@ logger = logging.getLogger(__name__)
 
 class CustomApi(API):
 
+
+
     @gzip
     @pre_process
     def get_jobs(self, request: Union[APIRequest, Any],
@@ -149,6 +151,66 @@ class CustomApi(API):
 
         return headers, HTTPStatus.OK, to_json(serialized_jobs,
                                                self.pretty_print)
+
+    @gzip
+    @pre_process
+    def get_job_result(self, request: Union[APIRequest, Any],
+                       job_id) -> Tuple[dict, int, str]:
+        """
+        Get result of job (instance of a process)
+
+        :param request: A request object
+        :param job_id: ID of job
+
+        :returns: tuple of headers, status code, content
+        """
+
+        if not request.is_valid():
+            return self.get_format_exception(request)
+        headers = request.get_response_headers(SYSTEM_LOCALE,
+                                               **self.api_headers)
+        job = self.manager.get_job(job_id)
+
+        if not job:
+            msg = 'job not found'
+            return self.get_exception(HTTPStatus.NOT_FOUND, headers,
+                                      request.format, 'NoSuchJob', msg)
+
+        status = JobStatus[job['status']]
+
+        if status == JobStatus.running:
+            msg = 'job still running'
+            return self.get_exception(
+                HTTPStatus.NOT_FOUND, headers,
+                request.format, 'ResultNotReady', msg)
+
+        elif status == JobStatus.accepted:
+            # NOTE: this case is not mentioned in the specification
+            msg = 'job accepted but not yet running'
+            return self.get_exception(
+                HTTPStatus.NOT_FOUND, headers,
+                request.format, 'ResultNotReady', msg)
+
+        mimetype, job_output = self.manager.get_job_result(job_id)
+
+        if mimetype not in (None, FORMAT_TYPES[F_JSON]):
+            headers['Content-Type'] = mimetype
+            content = job_output
+        else:
+            if request.format == F_JSON:
+                content = json.dumps(job_output, sort_keys=True, indent=4,
+                                     default=json_serial)
+            else:
+                # HTML
+                data = {
+                    'job': {'id': job_id},
+                    'result': job_output
+                }
+                content = render_j2_template(
+                    self.config, 'jobs/results/index.html',
+                    data, request.locale)
+
+        return headers, HTTPStatus.OK, content
 
 
 if 'PYGEOAPI_CONFIG' not in os.environ:

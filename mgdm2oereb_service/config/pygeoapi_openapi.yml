@@ -1,18 +1,18 @@
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/log.py:70} DEBUG - Logging initialized
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/api.py:680} DEBUG - Loading process manager mgdm2oereb_service.pygeoapi_plugins.process_manager.tinydb.CustomTinyDBManager
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/plugin.py:97} DEBUG - Plugins: {'Dummy': 'pygeoapi.process.manager.dummy.DummyManager', 'MongoDB': 'pygeoapi.process.manager.mongodb_.MongoDBManager', 'TinyDB': 'pygeoapi.process.manager.tinydb_.TinyDBManager'}
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/plugin.py:109} DEBUG - package name: mgdm2oereb_service.pygeoapi_plugins.process_manager.tinydb
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/plugin.py:110} DEBUG - class name: CustomTinyDBManager
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/api.py:682} INFO - Process manager plugin loaded
-[2023-06-14T22:37:42Z] {/app/src/mgdm2oereb_service/pygeoapi_plugins/process/mgdm2oereb/__init__.py:187} INFO - Created working dir /job/working_45888794-2e20-4921-bd25-01c86a6d9b61
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/l10n.py:227} DEBUG - 'en' matches requested 'en-US'
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/l10n.py:227} DEBUG - 'en' matches requested 'en-US'
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/plugin.py:97} DEBUG - Plugins: {'HelloWorld': 'pygeoapi.process.hello_world.HelloWorldProcessor'}
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/plugin.py:109} DEBUG - package name: mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb.processors
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/plugin.py:110} DEBUG - class name: Mgdm2OerebTransformator
-[2023-06-14T22:37:42Z] {/app/src/mgdm2oereb_service/pygeoapi_plugins/process/mgdm2oereb/__init__.py:187} INFO - Created working dir /job/working_836a4402-8e76-4f1e-b8ee-36bdcd815375
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/l10n.py:227} DEBUG - 'en' matches requested 'en-US'
-[2023-06-14T22:37:42Z] {/pygeoapi/pygeoapi/l10n.py:227} DEBUG - 'en' matches requested 'en-US'
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/log.py:70} DEBUG - Logging initialized
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/api.py:680} DEBUG - Loading process manager mgdm2oereb_service.pygeoapi_plugins.process_manager.tinydb.CustomTinyDBManager
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/plugin.py:97} DEBUG - Plugins: {'Dummy': 'pygeoapi.process.manager.dummy.DummyManager', 'MongoDB': 'pygeoapi.process.manager.mongodb_.MongoDBManager', 'TinyDB': 'pygeoapi.process.manager.tinydb_.TinyDBManager'}
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/plugin.py:109} DEBUG - package name: mgdm2oereb_service.pygeoapi_plugins.process_manager.tinydb
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/plugin.py:110} DEBUG - class name: CustomTinyDBManager
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/api.py:682} INFO - Process manager plugin loaded
+[2024-08-15T19:32:00Z] {/app/src/mgdm2oereb_service/pygeoapi_plugins/process/mgdm2oereb/__init__.py:198} INFO - Created working dir /job/working_9201f4bf-52dc-42e1-824a-f3538bb1ca77
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/l10n.py:227} DEBUG - 'en' matches requested 'en-US'
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/l10n.py:227} DEBUG - 'en' matches requested 'en-US'
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/plugin.py:97} DEBUG - Plugins: {'HelloWorld': 'pygeoapi.process.hello_world.HelloWorldProcessor'}
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/plugin.py:109} DEBUG - package name: mgdm2oereb_service.pygeoapi_plugins.process.mgdm2oereb.processors
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/plugin.py:110} DEBUG - class name: Mgdm2OerebTransformator
+[2024-08-15T19:32:00Z] {/app/src/mgdm2oereb_service/pygeoapi_plugins/process/mgdm2oereb/__init__.py:198} INFO - Created working dir /job/working_0f8c817e-3577-449d-b338-fa56f455ad1c
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/l10n.py:227} DEBUG - 'en' matches requested 'en-US'
+[2024-08-15T19:32:00Z] {/pygeoapi/pygeoapi/l10n.py:227} DEBUG - 'en' matches requested 'en-US'
 components:
   parameters:
     bbox:
