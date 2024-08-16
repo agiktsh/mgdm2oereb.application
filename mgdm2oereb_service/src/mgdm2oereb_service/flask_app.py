@@ -42,7 +42,7 @@ from flask import Flask, Blueprint, make_response, request, send_from_directory
 
 from pygeoapi.api import API, APIRequest, gzip, pre_process, SYSTEM_LOCALE, FORMAT_TYPES, F_JSON, F_HTML
 from pygeoapi.util import get_mimetype, yaml_load, get_api_rules, JobStatus, render_j2_template, \
-    DATETIME_FORMAT, to_json
+    DATETIME_FORMAT, to_json, json_serial
 
 logger = logging.getLogger(__name__)
 
@@ -190,7 +190,6 @@ class CustomApi(API):
             return self.get_exception(
                 HTTPStatus.NOT_FOUND, headers,
                 request.format, 'ResultNotReady', msg)
-
         mimetype, job_output = self.manager.get_job_result(job_id)
 
         if mimetype not in (None, FORMAT_TYPES[F_JSON]):

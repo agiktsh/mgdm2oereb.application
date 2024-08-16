@@ -29,19 +29,14 @@ class CustomTinyDBManager(TinyDBManager):
 
         location = job_result.get('location', None)
         mimetype = job_result.get('mimetype', None)
-        job_status = JobStatus[job_result['status']]
 
-        if not job_status == JobStatus.successful:
-            # Job is incomplete
-            return (None,)
         if not location:
             # Job data was not written for some reason
             # TODO log/raise exception?
             return (None,)
-
         with io.open(location, 'r', encoding='utf-8') as filehandler:
             result = filehandler.read()
-
+        logger.error(result)
         return mimetype, result
 
     def _execute_handler_sync(self, p: BaseProcessor, job_id: str,
