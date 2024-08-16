@@ -288,7 +288,8 @@ class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
             return {
                 'status': JobStatus.failed.value,
                 'msg': 'Validation of output file failed.',
-                'task': task_name
+                'task': task_name,
+                "output_validation_log": f"/{self.absolute_result_dir}/{job_files.output_log_file.file_name()}"
             }
         return {
             f"{task_name}_status": JobStatus.successful.value,
