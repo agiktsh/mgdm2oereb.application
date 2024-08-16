@@ -281,7 +281,7 @@ class Mgdm2OerebTransformatorBase(BaseProcessor):
                 status_response = requests.get(status_url)
                 body = status_response.json()
                 if last_log != body["status"]:
-                    logging.info(body)
+                    # logging.info(body)
                     last_log = body["status"]
                 if body["status"] in ["completedWithErrors", "completed"]:
                     ili_log_path = body['logUrl']

@@ -48,7 +48,7 @@ class TaskOrder:
 
 
 class Mgdm2OerebTransformator(Mgdm2OerebTransformatorBase):
-    mimetype = 'application/json'
+    mimetype = 'text/json'
     
     def format_exception(self, e: Exception) -> str:
         if hasattr(e, 'message'):
