@@ -131,6 +131,45 @@ class CustomApi(API):
                         'type': job_['mimetype'],
                         'title': f"results of job {job_id} as {job_['mimetype']}"  # noqa
                     })
+                if JobStatus[job_['status']] in (JobStatus.successful, JobStatus.failed):
+                    if job_['process_id'] in ['mgdm2oereb', 'mgdm2oereb-oereblex']:
+                        job2['links'] = []
+                        mimetype, result = self.manager.get_job_result(job_['identifier'])
+                        result_dict = json.loads(result)
+                        if result_dict.get('used_catalog', False):
+                            job2['links'].append({
+                                'href': result_dict['used_catalog'],
+                                'rel': 'about',
+                                'type': 'text/xml',
+                                'title': "[XTF] Catalogue used for this job"  # noqa
+                            })
+                        if result_dict.get('transformation_result', False):
+                            job2['links'].append({
+                                'href': result_dict['transformation_result'],
+                                'rel': 'about',
+                                'type': 'text/xml',
+                                'title': "[XTF] Trafo result of this job"  # noqa
+                            })
+                        if result_dict.get('output_validation_log', False):
+                            job2['links'].append({
+                                'href': result_dict['output_validation_log'],
+                                'rel': 'about',
+                                'type': 'text/plain',
+                                'title': "[LOG] ILI-Validator Log for trafo result"  # noqa
+                            })
+                        if result_dict.get('input_xtf', False):
+                            job2['links'].append({
+                                'href': result_dict['input_xtf'],
+                                'rel': 'about',
+                                'type': 'text/xml',
+                                'title': "[XTF] Input file which was used for transformation"  # noqa
+                            })
+                        job2['links'].append({
+                            'href': f'{job_result_url}?f={F_JSON}',
+                            'rel': 'about',
+                            'type': 'application/json',
+                            'title': f'results of job {job_id} as JSON'
+                        })
 
             serialized_jobs['jobs'].append(job2)
 
