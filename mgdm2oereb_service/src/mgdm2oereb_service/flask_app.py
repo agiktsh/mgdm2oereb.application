@@ -236,8 +236,11 @@ class CustomApi(API):
             content = job_output
         else:
             if request.format == F_JSON:
-                content = json.dumps(job_output, sort_keys=True, indent=4,
-                                     default=json_serial)
+                if isinstance(job_output, dict):
+                    content = json.dumps(job_output, sort_keys=True, indent=4,
+                                         default=json_serial)
+                else:
+                    content = job_output
             else:
                 # HTML
                 data = {

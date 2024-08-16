@@ -36,7 +36,7 @@ class CustomTinyDBManager(TinyDBManager):
             return (None,)
         with io.open(location, 'r', encoding='utf-8') as filehandler:
             result = filehandler.read()
-        return mimetype, json.loads(result)
+        return mimetype, result
 
     def _execute_handler_sync(self, p: BaseProcessor, job_id: str,
                               data_dict: dict) -> Tuple[str, Any, JobStatus]:
